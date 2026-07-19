@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Výzkum: hraní her a rozhodování o odměnách</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F8F9FA;
+    --card: #FFFFFF;
+    --border: #DADCE0;
+    --text: #202124;
+    --text-muted: #5F6368;
+    --accent: #673AB7;
+    --accent-soft: #EDE7F6;
+    --danger: #C5221F;
+    --danger-soft: #FCE8E6;
+    --radius: 8px;
+    --font: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-serif: 'Times New Roman', Times, serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; font-family: var(--font); background: var(--bg); color: var(--text);
+    min-height: 100vh; display: flex; flex-direction: column;
+    padding: 24px; -webkit-font-smoothing: antialiased;
+  }
+  .lang-toggle {
+    position: fixed; top: 18px; right: 18px; display: flex; gap: 4px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 3px;
+  }
+  .lang-btn {
+    border: none; background: none; padding: 6px 12px; font-size: 13px; font-weight: 600;
+    color: var(--text-muted); border-radius: 6px; cursor: pointer; font-family: var(--font);
+  }
+  .lang-btn.active { background: var(--accent); color: #fff; }
+  .card {
+    width: 100%; max-width: 600px; margin: auto; background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 44px 38px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .progress-label { font-size: 12px; color: var(--text-muted); letter-spacing: 0.03em; margin-bottom: 8px; text-transform: uppercase; }
+  .progress-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 30px; }
+  .progress-bar-fill { height: 100%; background: var(--accent); width: 0%; }
+  @media (prefers-reduced-motion: no-preference) { .progress-bar-fill { transition: width .25s ease; } }
+  h1 { font-size: 21px; margin: 0 0 16px; font-weight: 650; line-height: 1.3; }
+  p { line-height: 1.6; font-size: 15px; margin: 0 0 14px; }
+  .muted { color: var(--text-muted); font-size: 13px; }
+  .choices { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+  .choice-btn {
+    border: 1.5px solid var(--border); background: #fff; border-radius: var(--radius);
+    padding: 18px 18px; font-size: 16px; font-weight: 600; cursor: pointer; text-align: left;
+    color: var(--text); font-family: var(--font); width: 100%;
+  }
+  .choice-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .choice-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .choice-btn .sub { display: block; font-weight: 400; font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .btn-primary {
+    background: var(--accent); color: #fff; border: none; padding: 14px 22px; border-radius: var(--radius);
+    font-size: 15px; font-weight: 650; cursor: pointer; width: 100%; font-family: var(--font); margin-top: 20px;
+  }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-primary:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  .btn-secondary {
+    background: none; border: 1.5px solid var(--border); color: var(--text); padding: 12px 20px;
+    border-radius: var(--radius); font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;
+    font-family: var(--font); margin-top: 10px;
+  }
+  .consent-row { display: flex; gap: 12px; align-items: flex-start; margin: 22px 0; padding: 16px; background: var(--bg); border-radius: var(--radius); border: 1px solid var(--border); }
+  .consent-row input { margin-top: 3px; width: 17px; height: 17px; flex-shrink: 0; }
+  .consent-row label { font-size: 14px; line-height: 1.5; cursor: pointer; }
+  .pid-box {
+    background: var(--accent-soft); border-radius: var(--radius); padding: 14px 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 18px 0;
+  }
+  .pid-box button {
+    border: none; background: var(--accent); color: #fff; padding: 7px 12px; border-radius: 7px;
+    font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font); white-space: nowrap;
+  }
+  .status-note { border-radius: var(--radius); padding: 14px 16px; font-size: 13px; margin: 16px 0; line-height: 1.5; }
+  .status-note.ok { background: var(--accent-soft); color: var(--accent); }
+  .status-note.warn { background: var(--danger-soft); color: var(--danger); }
+
+  .numeric-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .numeric-row input[type=number] {
+    flex: 1; font-size: 20px; padding: 14px 16px; border: 1.5px solid var(--border); border-radius: var(--radius);
+    font-family: var(--font); color: var(--text); width: 100%;
+  }
+  .numeric-row input[type=number]:focus { outline: none; border-color: var(--accent); }
+  .numeric-row input.input-error { border-color: var(--danger); }
+  .numeric-suffix { font-size: 15px; color: var(--text-muted); white-space: nowrap; }
+
+  .likert-row { padding: 20px 0; border-top: 1px solid var(--border); border-radius: 6px; transition: background .15s ease; }
+  .likert-row:first-of-type { border-top: none; }
+  .likert-row.missing { background: var(--danger-soft); outline: 1.5px solid var(--danger); padding-left: 10px; padding-right: 10px; }
+  .likert-text { font-size: 15px; font-weight: 500; line-height: 1.5; margin-bottom: 16px; }
+  .likert-scale-row { display: flex; align-items: center; gap: 10px; }
+  .likert-endpoint { font-size: 11.5px; color: var(--text-muted); line-height: 1.3; max-width: 78px; }
+  .likert-endpoint.left { text-align: right; }
+  .likert-endpoint.right { text-align: left; }
+  .likert-dots { display: flex; gap: 14px; align-items: center; justify-content: center; flex: 1; }
+  .likert-dot {
+    width: 26px; height: 26px; border-radius: 50%; border: 2px solid #9AA0A6; background: #fff;
+    cursor: pointer; padding: 0; flex-shrink: 0; position: relative;
+  }
+  .likert-dot:hover { border-color: var(--accent); }
+  .likert-dot.selected { border-color: var(--accent); }
+  .likert-dot.selected::after {
+    content: ''; position: absolute; inset: 4px; border-radius: 50%; background: var(--accent);
+  }
+  .likert-dot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .likert-progress { font-size: 12.5px; color: var(--text-muted); text-align: center; margin-top: 14px; }
+
+  .logo-row { display: flex; justify-content: center; margin-bottom: 22px; }
+  .logo-row img { max-height: 46px; max-width: 100%; }
+  .consent-box {
+    font-family: var(--font-serif); font-size: 14.5px; line-height: 1.6; color: var(--text);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; margin: 18px 0 0;
+  }
+
+  .text-input {
+    width: 100%; font-size: 15px; padding: 13px 14px; border: 1.5px solid var(--border);
+    border-radius: var(--radius); font-family: var(--font); color: var(--text); margin-top: 10px;
+  }
+  .text-input:focus { outline: none; border-color: var(--accent); }
+
+  .raffle-box { border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-top: 22px; }
+  .raffle-box h2 { font-size: 15px; margin: 0 0 8px; }
+</style>
+</head>
+<body>
+  <div class="lang-toggle" id="langToggle"></div>
+  <div class="card" id="app"></div>
+
+<script>
+/* ============================================================
+   KONFIGURACE — uprav podle potreby
+   ============================================================ */
+const CONFIG = {
+  AMOUNT_EUR: 1000,
+  EUR_TO_CZK: 24.2,
+  CZK_RATE_NOTE: 'kurz k 16. 7. 2026',
+  GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwM07n-VJ-TTDQ8UzPXxgNa-SubEAxCriJH0PqS6S31jUjQAmmrw2YdWT0WOxVGDkax/exec',       // jedna URL, routuje se podle record_type (data / screened_out / raffle)
+  MIN_PLAUSIBLE_RT_MS: 300,
+  MIN_AGE: 18,
+  STUDY_ID: 'lootbox_dd_v2',
+};
+
+/* Texty — cele v cestine. Mena (EUR/CZK) je nezavisly prepinac vpravo hore,
+   pouziva se jak v uloze na diskontovani, tak pri financnich otazkach. */
+const T = {
+  introTitle: 'Vítejte',
+  introBody:
+    'Tento dotazník je součástí výzkumu v rámci diplomové práce na Fakultě sociálních studií ' +
+    'Masarykovy univerzity. Zjišťujeme souvislosti mezi hraním videoher, nákupem lootboxů ' +
+    'a rozhodováním o odměnách v čase. Vyplnění zabere přibližně 5–8 minut. Výzkum je určen pouze ' +
+    'pro <strong>osoby starší 18 let</strong>.',
+  introRaffle:
+    'Pokud budete chtít, na konci se budete moci dobrovolně zapojit do žrebování o <strong>5× herní ' +
+    'poukázku Steam v hodnotě 10 €</strong>. Pro tento účel se e-mail uloží zcela odděleně od vašich ' +
+    'odpovědí a nijak se s nimi nepropojí.',
+  consentText:
+    'Účast je dobrovolná a anonymní, odpovědi budou použity výhradně pro účely výzkumu. ' +
+    'Účast můžete kdykoli ukončit bez udání důvodu. [UPRAV TENTO TEXT podle znění schváleného etickou komisí]',
+  consentLabel: 'Souhlasím s účastí ve výzkumu za uvedených podmínek.',
+  continueBtn: 'Pokračovat',
+
+  ineligibleAgeTitle: 'Děkujeme za zájem',
+  ineligibleAgeBody: 'Tento výzkum je určen pouze pro osoby starší 18 let, a proto bohužel nemůžete pokračovat.',
+  ineligibleNotPlayerTitle: 'Děkujeme za zájem',
+  ineligibleNotPlayerBody:
+    'Tento výzkum je zaměřen na osoby, které v posledních 30 dnech hrály videohry, ' +
+    'a proto bohužel nemůžete v dotazníku pokračovat.',
+
+  ageTitle: 'Kolik je vám let?',
+  ageSuffix: 'let',
+  played30Title: 'Hrál/a jste během posledních 30 dnů videohry?',
+  hours7dTitle: 'Kolik hodin jste během posledních 7 dnů přibližně strávil/a hraním videoher?',
+  hours7dSuffix: 'hodin',
+  lootbox12moTitle: 'Otevřel/a jste během posledních 12 měsíců alespoň jeden lootbox nebo jinou náhodnou herní odměnu, ať už placenou, nebo získanou hraním?',
+  lootbox12moNote: 'Lootboxem se rozumí herní mechanismus, při kterém hráč předem neví, jakou konkrétní virtuální odměnu získá. Patří sem například bedny, truhly, náhodné balíčky, gacha tahy nebo balíčky hráčů.',
+
+  instructionsTitle: 'Jak funguje tato část',
+  instructionsBody:
+    'Na následujících obrazovkách si vždy vyberete mezi dvěma částkami peněz — jednou, kterou byste ' +
+    'dostali hned, a druhou, větší, kterou byste dostali až po určité době. Představte si, že jde ' +
+    'o skutečnou volbu, a vyberte možnost, kterou byste v takové situaci opravdu preferovali. ' +
+    'Neexistuje správná ani nesprávná odpověď.',
+  startBtn: 'Začít',
+  questionLabel: n => 'Otázka ' + n + ' z 6',
+  soonerSuffix: 'hned',
+  laterPrefix: 'za',
+
+  rlbiTitle: 'Herní návyky',
+  rlbiNote: 'Následující tvrzení se týkají vašich zkušeností s lootboxy. U každého tvrzení klikněte na ' +
+    'bod na škále, který nejlépe vyjadřuje, do jaké míry s ním souhlasíte — od "rozhodně nesouhlasím" ' +
+    'po "rozhodně souhlasím". Odpovězte prosím na všechna tvrzení.',
+  aeqTitle: 'Hraní online her',
+  aeqNote: 'Následující tvrzení se týkají vašeho hraní online her obecně (nejen lootboxů). U každého ' +
+    'tvrzení klikněte na bod na škále, který nejlépe vyjadřuje, do jaké míry s ním souhlasíte. ' +
+    'Odpovězte prosím na všechna tvrzení.',
+
+  lbSpendTitle: 'Kolik peněz jste během posledních 30 dnů celkem utratil/a za lootboxy nebo jiné náhodné herní odměny?',
+  lbSpendNote: 'Zahrňte také placenou herní měnu, kterou jste použil/a k otevření lootboxů. Pokud jste nic neutratil/a, uveďte 0.',
+  incomeTitle: 'Kolik peněz jste měl/a během posledních 30 dnů přibližně k dispozici na vlastní volitelné výdaje po zaplacení nezbytných výdajů?',
+  incomeNote: 'Zahrňte peníze, které jste mohl/a podle vlastního uvážení použít například na zábavu, hry, koníčky nebo nákupy. Pokud nemáte pravidelný příjem, zahrňte také kapesné nebo jiné peníze, které jste měl/a k dispozici.',
+
+  genderTitle: 'Jaké je vaše genderové zařazení?',
+  countryTitle: 'Ve které zemi v současnosti žijete?',
+  countryOtherTitle: 'Uveďte prosím zemi',
+  platformTitle: 'Na jaké platformě nejčastěji hrajete?',
+
+  thanksTitle: 'Děkujeme za vyplnění',
+  thanksBody: 'Vaše odpovědi byly zaznamenány. Níže je váš kód účastníka — uložte si ho, může se hodit, ' +
+    'pokud bude výzkum pokračovat dalšími dotazníky.',
+  pidLabel: 'Kód účastníka',
+  copyBtn: 'Kopírovat',
+  copiedBtn: 'Zkopírováno',
+  backupBtn: 'Stáhnout záznam odpovědí (JSON)',
+  sentOk: 'Data byla odeslána.',
+  sentError: 'Data se nepodařilo automaticky odeslat. Stáhněte si prosím zálohu níže a uschovejte ji.',
+  notConfigured: 'Ukládání dat ještě není nastaveno (chybí GOOGLE_SCRIPT_URL). Data si zatím stáhněte ručně.',
+
+  raffleTitle: 'Žrebování o Steam poukázku',
+  raffleBody: 'Chcete se zapojit do žrebování o 5× herní poukázku Steam v hodnotě 10 €? E-mail se uloží ' +
+    'odděleně od vašich odpovědí a nijak se s nimi nepropojí.',
+  raffleEmailPlaceholder: 'vas@email.cz',
+  raffleSendBtn: 'Odeslat e-mail',
+  raffleSentMsg: 'Děkujeme, e-mail byl zaznamenán.',
+  raffleErrorMsg: 'E-mail se nepodařilo odeslat. Zkuste to prosím znovu, případně později.',
+  raffleNotConfiguredMsg: 'Zápis do žrebování zatím není technicky nastaven (chybí GOOGLE_SCRIPT_URL).',
+};
+
+/* ============================================================
+   6-TRIAL ADJUSTING DELAY TASK — Koffarnus, Rzeszutek & Kaplan (2021), Table 3.
+   ============================================================ */
+const LABELS = {1:'5 sekund',2:'5 sekund',3:'7 sekund',4:'10 sekund',5:'15 sekund',6:'20 sekund',7:'25 sekund',
+  8:'30 sekund',9:'45 sekund',10:'1 minutu',11:'1,5 minuty',12:'2 minuty',13:'3 minuty',14:'4 minuty',
+  15:'6 minut',16:'9 minut',17:'12 minut',18:'17 minut',19:'23 minut',20:'30 minut',21:'45 minut',
+  22:'1 hodinu',23:'1,5 hodiny',24:'2 hodiny',25:'3 hodiny',26:'4 hodiny',27:'5 hodin',28:'7 hodin',
+  29:'10 hodin',30:'15 hodin',31:'20 hodin',32:'1 den',33:'1,5 dne',34:'2 dny',35:'3 dny',36:'4 dny',
+  37:'6 dní',38:'1 týden',39:'1,5 týdne',40:'2 týdny',41:'3 týdny',42:'1 měsíc',43:'1,5 měsíce',
+  44:'2 měsíce',45:'3 měsíce',46:'4 měsíce',47:'6 měsíců',48:'8 měsíců',49:'8 měsíců',
+  50:'10 měsíců',51:'1,5 roku',52:'2 roky',53:'3 roky',54:'5 let',55:'6 let',56:'9 let',
+  57:'12 let',58:'17 let',59:'25 let',60:'33 let',61:'46 let',62:'65 let',63:'65 let'};
+
+const ODD_K = {
+  1:{imm:null,del:17280}, 3:{imm:14604.2655217088,del:10326.7751846492},
+  5:{imm:7054.5304592156,del:4988.3063257984}, 7:{imm:3863.9254651196,del:3154.8819312298},
+  9:{imm:2351.5101530719,del:1662.7687752661}, 11:{imm:1175.7550765359,del:831.3843876331},
+  13:{imm:587.8775382680,del:415.6921938165}, 15:{imm:293.9387691340,del:195.9591794227},
+  17:{imm:138.5640646055,del:100.8201660500}, 19:{imm:72.8239301891,del:54.8198631091},
+  21:{imm:39.1918358845,del:27.7128129211}, 23:{imm:19.5959179423,del:13.8564064606},
+  25:{imm:9.7979589711,del:6.9282032303}, 27:{imm:5.3665631460,del:4.0567404227},
+  29:{imm:2.8685486624,del:1.9595917942}, 31:{imm:1.3856406461,del:1.0954451150},
+  33:{imm:0.8164965809,del:0.5773502692}, 35:{imm:0.4082482905,del:0.2886751346},
+  37:{imm:0.2041241452,del:0.1543033500}, 39:{imm:0.1166423687,del:0.0824786099},
+  41:{imm:0.0583211844,del:0.0395519617}, 43:{imm:0.0268231465,del:0.0189668288},
+  45:{imm:0.0134115733,del:0.0094834144}, 47:{imm:0.0067057866,del:0.0047417072},
+  49:{imm:0.0036729106,del:0.0029990421}, 51:{imm:0.0022354458,del:0.0015806989},
+  53:{imm:0.0011177229,del:0.0007069100}, 55:{imm:0.0004998609,del:0.0003725743},
+  57:{imm:0.0002634498,del:0.0001916879}, 59:{imm:0.0001328053,del:0.0000953197},
+  61:{imm:0.0000702706,del:0.0000500696}, 63:{imm:0.0000421208,del:null},
+};
+
+/* ============================================================
+   RLBI — Risky Loot Box Index (5 polozek, skala 1-5, bez obracenych
+   polozek — vsechny stejnym smerem, prosty soucet je v poradku, ale
+   over si oficialni skorovani puvodni RLBI publikace pred pouzitim).
+   ============================================================ */
+const RLBI_ITEMS = [
+  {key:'rlbi_1', text:'Vzrušení, které zažívám při otevírání lootboxů, mě přimělo si jich koupit více.'},
+  {key:'rlbi_2', text:'Abych získal/a lootboxy, často hraji déle, než jsem chtěl/a.'},
+  {key:'rlbi_3', text:'Odkládal/a jsem jiné aktivity, práci nebo povinnosti, abych mohl/a získat či si koupit více lootboxů.'},
+  {key:'rlbi_4', text:'Když otevřu lootbox, často mám nutkání otevřít další.'},
+  {key:'rlbi_5', text:'Poté, co jsem nezískal/a žádné cenné předměty, jsem si koupil/a více lootboxů.'},
+];
+const RLBI_SCALE = [
+  {v:1,label:'Rozhodně nesouhlasím'},{v:2,label:'Nesouhlasím'},{v:3,label:'Nejsem si jistý/á'},
+  {v:4,label:'Souhlasím'},{v:5,label:'Rozhodně souhlasím'},
+];
+
+/* ============================================================
+   AEQ — Addiction-Engagement Questionnaire (Charlton & Danforth;
+   ceska adaptace Blinka et al.)
+
+   POZOR — DVE VECI K OVERENI PRED POUZITIM VYSLEDNYCH DAT:
+   1) Blinka, Skarupova & Mitterova (2016) popisuji skalu jako
+      1=rozhodne nesouhlasim ... 4=rozhodne souhlasim (STANDARDNI smer).
+      Zde je pouzit smer, ktery zadal Oldo (1=rozhodne souhlasim ...
+      4=rozhodne nesouhlasim, OBRACENY smer) — over si to na zdroji,
+      odkud tyto polozky mas, nez budes pocitat subskore.
+   2) Publikace popisuje 24 polozek (12 addiction + 12 engagement),
+      zde je jich 23 — over, jestli jedna nevypadla.
+   Surova data (aeq_1..aeq_23) se ukladaji presne tak, jak je respondent
+   zvolil na 4-bodove skale nize; zadne prepocitavani/sublskory se
+   NEDELA automaticky (viz navod-nastavenie.md).
+   'coding' u kazde polozky je jen informativni poznamka z Oldovho
+   zdroje (primé/obracene), NEPOUZIVA se v kodu.
+   ============================================================ */
+const AEQ_ITEMS = [
+  {key:'aeq_1',  coding:'reversed', text:'Někdy zanedbávám důležité věci kvůli hraní online her.'},
+  {key:'aeq_2',  coding:'reversed', text:'Můj společenský život občas trpí kvůli hraní online her.'},
+  {key:'aeq_3',  coding:'reversed', text:'Hraní online her mi někdy narušuje pracovní povinnosti.'},
+  {key:'aeq_4',  coding:'reversed', text:'Když nehraji, často se cítím nesvůj/nesvá.'},
+  {key:'aeq_5',  coding:'reversed', text:'Neúspěšně jsem se pokoušel/a omezit čas strávený hraním.'},
+  {key:'aeq_6',  coding:'reversed', text:'Občas se opozdím s plněním povinností, protože hraji online hry.'},
+  {key:'aeq_7',  coding:'reversed', text:'Doma občas dochází k hádkám kvůli času, který strávím hraním.'},
+  {key:'aeq_8',  coding:'reversed', text:'Myslím, že jsem na hraní online her závislý/á.'},
+  {key:'aeq_9',  coding:'reversed', text:'Často se kvůli hraní dostatečně nevyspím.'},
+  {key:'aeq_10', coding:'reversed', text:'Občas se kvůli hraní online her pořádně nenajím.'},
+  {key:'aeq_11', coding:'reversed', text:'Někdy jdu hrát, abych se vyhnul/a společnosti druhých.'},
+  {key:'aeq_12', coding:'reversed', text:'Často mám pocit, že za hraní online her utrácím více peněz, než si mohu dovolit.'},
+  {key:'aeq_13', coding:'reversed', text:'Vadilo by mi, kdybych už nikdy online hry nehrál/a.'},
+  {key:'aeq_14', coding:'reversed', text:'Při pomyšlení na hru se cítím šťastný/á.'},
+  {key:'aeq_15', coding:'direct',   text:'Čím méně mám s hraním online her společného, tím lépe.'},
+  {key:'aeq_16', coding:'direct',   text:'Online hry nejsou pro můj život zvlášť podstatné.'},
+  {key:'aeq_17', coding:'reversed', text:'Nesnesl/a bych být bez hraní déle než několik dní.'},
+  {key:'aeq_18', coding:'direct',   text:'Když lidé mluví o online hrách, málokdy tomu věnuji pozornost.'},
+  {key:'aeq_19', coding:'reversed', text:'Je pro mě důležité, abych byl/a ve hře, kterou hraji, dobrý/á.'},
+  {key:'aeq_20', coding:'reversed', text:'Hraní online her je podle mě vzrušující nebo napínavé.'},
+  {key:'aeq_21', coding:'reversed', text:'Mám rád/a výzvu, kterou představuje naučit se online hry hrát.'},
+  {key:'aeq_22', coding:'direct',   text:'Hantýrka neboli slang spojený s hraním online her mi zní hloupě.'},
+  {key:'aeq_23', coding:'direct',   text:'Nedokážu pochopit, proč mají lidé online hry rádi.'},
+];
+const AEQ_SCALE = [
+  {v:1,label:'Rozhodně souhlasím'},{v:2,label:'Souhlasím'},{v:3,label:'Nesouhlasím'},{v:4,label:'Rozhodně nesouhlasím'},
+];
+
+/* ============================================================
+   STAV APLIKACE
+   ============================================================ */
+const state = {
+  currency: 'czk',        // 'czk' | 'eur' — nezavisle od jazyka (jazyk je jen cestina)
+  screen: 'intro',
+  // diskontovaci uloha:
+  trial: 0, index: 32, step: 16, choices: [], trialLog: [], trialStartTs: null,
+  attentionType: null,
+  // ostatni odpovedi (plochy objekt, klic = nazev polozky):
+  answers: {},
+  // pomocne casove znacky pro page-level RT (speeder check):
+  pageStartTs: {},
+  participantId: 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+  studyStartIso: new Date().toISOString(),
+  sendStatus: null,
+  lastPayload: null,
+};
+
+function formatAmount(eur) {
+  if (state.currency === 'czk') {
+    const czk = Math.round(eur * CONFIG.EUR_TO_CZK / 10) * 10;
+    return czk.toLocaleString('cs-CZ') + ' Kč';
+  }
+  return eur.toLocaleString('cs-CZ') + ' €';
+}
+function currencySuffix() { return state.currency === 'czk' ? 'Kč' : '€'; }
+
+/* ============================================================
+   OBECNE RENDER POMUCKY
+   ============================================================ */
+function renderCurrencyToggle() {
+  const el = document.getElementById('langToggle');
+  el.innerHTML = ['czk', 'eur'].map(c =>
+    '<button class="lang-btn ' + (state.currency === c ? 'active' : '') + '" data-cur="' + c + '">' +
+      c.toUpperCase() + '</button>'
+  ).join('');
+  el.querySelectorAll('.lang-btn').forEach(b => {
+    b.addEventListener('click', () => { state.currency = b.dataset.cur; render(); });
+  });
+}
+
+function renderNumericScreen(app, opts) {
+  app.innerHTML =
+    '<h1>' + opts.title + '</h1>' +
+    (opts.note ? '<p class="muted">' + opts.note + '</p>' : '') +
+    '<div class="numeric-row">' +
+      '<input type="number" id="numInput" inputmode="decimal" placeholder="0">' +
+      (opts.suffix ? '<span class="numeric-suffix">' + opts.suffix + '</span>' : '') +
+    '</div>' +
+    '<button class="btn-primary" id="numContinue">' + T.continueBtn + '</button>';
+  const input = document.getElementById('numInput');
+  const btn = document.getElementById('numContinue');
+  const submit = () => {
+    const val = parseFloat((input.value || '').replace(',', '.'));
+    const min = opts.min != null ? opts.min : -Infinity;
+    const max = opts.max != null ? opts.max : Infinity;
+    if (input.value === '' || isNaN(val) || val < min || val > max) {
+      input.classList.add('input-error');
+      return;
+    }
+    input.classList.remove('input-error');
+    opts.onSubmit(val);
+  };
+  btn.addEventListener('click', submit);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+}
+
+function renderSingleChoiceScreen(app, opts) {
+  app.innerHTML =
+    '<h1>' + opts.title + '</h1>' +
+    (opts.note ? '<p class="muted">' + opts.note + '</p>' : '') +
+    '<div class="choices">' +
+      opts.options.map(o => '<button class="choice-btn" data-value="' + o.value + '">' + o.label + '</button>').join('') +
+    '</div>';
+  app.querySelectorAll('.choice-btn').forEach(b => {
+    b.addEventListener('click', () => opts.onSelect(b.dataset.value));
+  });
+}
+
+function renderTextScreen(app, opts) {
+  app.innerHTML =
+    '<h1>' + opts.title + '</h1>' +
+    (opts.note ? '<p class="muted">' + opts.note + '</p>' : '') +
+    '<input type="text" class="text-input" id="txtInput" placeholder="' + (opts.placeholder || '') + '">' +
+    '<button class="btn-primary" id="txtContinue">' + T.continueBtn + '</button>';
+  const input = document.getElementById('txtInput');
+  const btn = document.getElementById('txtContinue');
+  btn.addEventListener('click', () => opts.onSubmit((input.value || '').trim()));
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') opts.onSubmit((input.value || '').trim()); });
+}
+
+function renderLikertScreen(app, opts) {
+  state.pageStartTs[opts.pageKey] = performance.now();
+  const leftLabel = opts.scale[0].label;
+  const rightLabel = opts.scale[opts.scale.length - 1].label;
+  const rows = opts.items.map((item, i) =>
+    '<div class="likert-row" data-row-key="' + item.key + '">' +
+      '<div class="likert-text">' + (i + 1) + '. ' + item.text + '</div>' +
+      '<div class="likert-scale-row">' +
+        '<span class="likert-endpoint left">' + leftLabel + '</span>' +
+        '<div class="likert-dots">' +
+          opts.scale.map(s => '<button class="likert-dot" data-key="' + item.key + '" data-v="' + s.v + '" ' +
+            'aria-label="' + s.label + '"></button>').join('') +
+        '</div>' +
+        '<span class="likert-endpoint right">' + rightLabel + '</span>' +
+      '</div>' +
+    '</div>'
+  ).join('');
+  app.innerHTML =
+    '<h1>' + opts.title + '</h1>' +
+    (opts.note ? '<p class="muted">' + opts.note + '</p>' : '') +
+    rows +
+    '<button class="btn-primary" id="likertContinue">' + T.continueBtn + '</button>' +
+    '<div class="likert-progress" id="likertProgress"></div>';
+
+  const answers = {};
+  const btn = document.getElementById('likertContinue');
+  const progressEl = document.getElementById('likertProgress');
+  const updateProgress = () => {
+    progressEl.textContent = 'Zodpovězeno: ' + Object.keys(answers).length + ' / ' + opts.items.length;
+  };
+  updateProgress();
+
+  app.querySelectorAll('.likert-dot').forEach(b => {
+    b.addEventListener('click', () => {
+      const key = b.dataset.key, v = parseInt(b.dataset.v, 10);
+      answers[key] = v;
+      app.querySelectorAll('.likert-dot[data-key="' + key + '"]').forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+      const row = app.querySelector('.likert-row[data-row-key="' + key + '"]');
+      if (row) row.classList.remove('missing');
+      updateProgress();
+    });
+  });
+
+  btn.addEventListener('click', () => {
+    const missingItem = opts.items.find(item => answers[item.key] === undefined);
+    if (missingItem) {
+      app.querySelectorAll('.likert-row').forEach(r => r.classList.remove('missing'));
+      const row = app.querySelector('.likert-row[data-row-key="' + missingItem.key + '"]');
+      if (row) {
+        row.classList.add('missing');
+        if (typeof row.scrollIntoView === 'function') {
+          row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+      }
+      return;
+    }
+    const durationMs = Math.round(performance.now() - state.pageStartTs[opts.pageKey]);
+    opts.onSubmit(answers, durationMs);
+  });
+}
+
+/* ============================================================
+   HLAVNI RENDER DISPATCHER
+   ============================================================ */
+function render() {
+  renderCurrencyToggle();
+  const app = document.getElementById('app');
+  const map = {
+    intro: renderIntro,
+    ineligible_age: renderIneligibleAge,
+    ineligible_notplayer: renderIneligibleNotPlayer,
+    age: renderAgeScreen,
+    played30: renderPlayed30Screen,
+    hours7d: renderHours7dScreen,
+    lootbox12mo: renderLootbox12moScreen,
+    instructions: renderInstructions,
+    trial: renderTrial,
+    rlbi: renderRlbiScreen,
+    aeq: renderAeqScreen,
+    lbspend: renderLbSpendScreen,
+    income: renderIncomeScreen,
+    gender: renderGenderScreen,
+    country: renderCountryScreen,
+    country_other: renderCountryOtherScreen,
+    platform: renderPlatformScreen,
+    thanks: renderThanks,
+  };
+  (map[state.screen] || renderIntro)(app);
+}
+
+/* ---------- intro / eligibilita ---------- */
+function renderIntro(app) {
+  app.innerHTML =
+    '<div class="logo-row"><img src="muni-logo.png" alt="Masarykova univerzita" ' +
+      'onerror="this.style.display=\'none\'"></div>' +
+    '<h1>' + T.introTitle + '</h1>' +
+    '<p>' + T.introBody + '</p>' +
+    '<p>' + T.introRaffle + '</p>' +
+    '<div class="consent-box">' + T.consentText + '</div>' +
+    '<div class="consent-row">' +
+      '<input type="checkbox" id="consentBox">' +
+      '<label for="consentBox">' + T.consentLabel + '</label>' +
+    '</div>' +
+    '<button class="btn-primary" id="introContinue" disabled>' + T.continueBtn + '</button>';
+  const box = document.getElementById('consentBox');
+  const btn = document.getElementById('introContinue');
+  box.addEventListener('change', () => { btn.disabled = !box.checked; });
+  btn.addEventListener('click', () => { state.screen = 'age'; render(); });
+}
+
+function renderIneligibleAge(app) {
+  app.innerHTML = '<h1>' + T.ineligibleAgeTitle + '</h1><p>' + T.ineligibleAgeBody + '</p>';
+}
+function renderIneligibleNotPlayer(app) {
+  app.innerHTML = '<h1>' + T.ineligibleNotPlayerTitle + '</h1><p>' + T.ineligibleNotPlayerBody + '</p>';
+}
+
+function renderAgeScreen(app) {
+  renderNumericScreen(app, {
+    title: T.ageTitle, suffix: T.ageSuffix, min: 5, max: 110,
+    onSubmit: val => {
+      state.answers.age = val;
+      if (val < CONFIG.MIN_AGE) {
+        submitScreenedOut('age', val);
+        state.screen = 'ineligible_age';
+        render();
+        return;
+      }
+      state.screen = 'played30';
+      render();
+    },
+  });
+}
+
+function renderPlayed30Screen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.played30Title,
+    options: [{value:'yes', label:'Ano'}, {value:'no', label:'Ne'}],
+    onSelect: val => {
+      state.answers.played_last_30d = val;
+      if (val === 'no') {
+        submitScreenedOut('not_player', state.answers.age);
+        state.screen = 'ineligible_notplayer';
+        render();
+        return;
+      }
+      state.screen = 'hours7d';
+      render();
+    },
+  });
+}
+
+function renderHours7dScreen(app) {
+  renderNumericScreen(app, {
+    title: T.hours7dTitle, suffix: T.hours7dSuffix, min: 0, max: 168,
+    onSubmit: val => { state.answers.hours_last_7d = val; state.screen = 'lootbox12mo'; render(); },
+  });
+}
+
+function renderLootbox12moScreen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.lootbox12moTitle, note: T.lootbox12moNote,
+    options: [{value:'yes', label:'Ano'}, {value:'no', label:'Ne'}, {value:'unsure', label:'Nejsem si jistý/á'}],
+    onSelect: val => {
+      state.answers.lootbox_opened_12mo = val;
+      state.screen = 'instructions';
+      render();
+    },
+  });
+}
+
+/* ---------- diskontovaci uloha (6 trialu) ---------- */
+function renderInstructions(app) {
+  app.innerHTML =
+    '<h1>' + T.instructionsTitle + '</h1>' +
+    '<p>' + T.instructionsBody + '</p>' +
+    '<button class="btn-primary" id="startTask">' + T.startBtn + '</button>';
+  document.getElementById('startTask').addEventListener('click', () => {
+    state.screen = 'trial';
+    state.trial = 1;
+    render();
+  });
+}
+
+function beginTrialTimer() { state.trialStartTs = performance.now(); }
+
+function currentTrialContent() {
+  if (state.trial === 6 && state.attentionType === 'A') {
+    return { kind:'attentionA', node:1,
+      sooner:{amountEur:0,label:T.soonerSuffix,correct:false},
+      later:{amountEur:CONFIG.AMOUNT_EUR,delayLabel:LABELS[1],correct:true} };
+  }
+  if (state.trial === 6 && state.attentionType === 'B') {
+    return { kind:'attentionB', node:63,
+      sooner:{amountEur:CONFIG.AMOUNT_EUR,label:T.soonerSuffix,correct:true},
+      later:{amountEur:CONFIG.AMOUNT_EUR,delayLabel:LABELS[63],correct:false} };
+  }
+  return { kind:'normal', node: state.index,
+    sooner:{amountEur:CONFIG.AMOUNT_EUR/2,label:T.soonerSuffix},
+    later:{amountEur:CONFIG.AMOUNT_EUR,delayLabel:LABELS[state.index]} };
+}
+
+function renderTrial(app) {
+  const content = currentTrialContent();
+  const soonerText = formatAmount(content.sooner.amountEur) + ' ' + (content.sooner.label || T.soonerSuffix);
+  const laterText = formatAmount(content.later.amountEur) + ' ' + T.laterPrefix + ' ' + (content.later.delayLabel || '');
+
+  const soonerFirst = Math.random() < 0.5;
+  const order = soonerFirst ? ['sooner', 'later'] : ['later', 'sooner'];
+  const buttonHtml = order.map(kind => {
+    const label = kind === 'sooner' ? soonerText : laterText;
+    return '<button class="choice-btn" data-choice="' + kind + '">' + label + '</button>';
+  }).join('');
+
+  app.innerHTML =
+    '<div class="progress-label">' + T.questionLabel(state.trial) + '</div>' +
+    '<div class="progress-bar"><div class="progress-bar-fill" style="width:' + (state.trial / 6 * 100) + '%"></div></div>' +
+    '<div class="choices">' + buttonHtml + '</div>';
+
+  document.querySelectorAll('.choice-btn').forEach(b => {
+    b.addEventListener('click', () => handleChoice(b.dataset.choice, content));
+  });
+  beginTrialTimer();
+}
+
+function handleChoice(pickedKind, content) {
+  const rtMs = Math.round(performance.now() - state.trialStartTs);
+  const flagTooFast = rtMs < CONFIG.MIN_PLAUSIBLE_RT_MS;
+
+  if (content.kind === 'normal') {
+    const choice = pickedKind === 'sooner' ? 'imm' : 'del';
+    state.trialLog.push({ trial: state.trial, kind:'normal', node: content.node,
+      delay_label: LABELS[content.node], choice, rt_ms: rtMs, flag_too_fast: flagTooFast });
+
+    if (state.trial < 6) {
+      state.choices.push(choice);
+      state.index = choice === 'imm' ? state.index - state.step : state.index + state.step;
+      state.step = state.step / 2;
+      state.trial += 1;
+      if (state.trial === 6) {
+        const allImm = state.choices.every(c => c === 'imm');
+        const allDel = state.choices.every(c => c === 'del');
+        state.attentionType = allImm ? 'A' : (allDel ? 'B' : null);
+      }
+      render();
+    } else {
+      const k = choice === 'imm' ? ODD_K[content.node].imm : ODD_K[content.node].del;
+      finishDiscountingTask({ attentionTriggered:false, attentionPassed:null, k });
+    }
+    return;
+  }
+
+  const chosenSide = pickedKind === 'sooner' ? content.sooner : content.later;
+  const passed = !!chosenSide.correct;
+  state.trialLog.push({ trial:6, kind:'attention_' + state.attentionType, node: content.node,
+    delay_label: LABELS[content.node], choice: pickedKind, rt_ms: rtMs, flag_too_fast: flagTooFast, passed });
+
+  let k = null;
+  if (passed) k = state.attentionType === 'A' ? ODD_K[1].del : ODD_K[63].imm;
+  finishDiscountingTask({ attentionTriggered:true, attentionPassed:passed, k });
+}
+
+function finishDiscountingTask({ attentionTriggered, attentionPassed, k }) {
+  const rts = state.trialLog.map(x => x.rt_ms);
+  state.answers.dd_k = k;
+  state.answers.dd_ed50_days = k ? 1 / k : null;
+  state.answers.dd_log10_k = k ? Math.log10(k) : null;
+  state.answers.dd_attention_triggered = attentionTriggered;
+  state.answers.dd_attention_type = state.attentionType || '';
+  state.answers.dd_attention_passed = attentionPassed;
+  state.answers.dd_min_rt_ms = Math.min.apply(null, rts);
+  state.answers.dd_flag_too_fast = state.trialLog.some(x => x.flag_too_fast);
+  state.trialLog.forEach((entry, i) => {
+    const p = 'dd_t' + (i + 1) + '_';
+    state.answers[p + 'kind'] = entry.kind;
+    state.answers[p + 'delay_label'] = entry.delay_label || '';
+    state.answers[p + 'choice'] = entry.choice;
+    state.answers[p + 'rt_ms'] = entry.rt_ms;
+  });
+
+  state.screen = 'rlbi';
+  render();
+}
+
+/* ---------- RLBI / AEQ ---------- */
+function renderRlbiScreen(app) {
+  renderLikertScreen(app, {
+    title: T.rlbiTitle, note: T.rlbiNote, items: RLBI_ITEMS, scale: RLBI_SCALE, pageKey: 'rlbi',
+    onSubmit: (answers, durationMs) => {
+      Object.assign(state.answers, answers);
+      state.answers.rlbi_total = RLBI_ITEMS.reduce((s, it) => s + answers[it.key], 0);
+      state.answers.rlbi_duration_ms = durationMs;
+      state.screen = 'aeq';
+      render();
+    },
+  });
+}
+
+function renderAeqScreen(app) {
+  renderLikertScreen(app, {
+    title: T.aeqTitle, note: T.aeqNote, items: AEQ_ITEMS, scale: AEQ_SCALE, pageKey: 'aeq',
+    onSubmit: (answers, durationMs) => {
+      Object.assign(state.answers, answers); // surove polozky, zadne subskore (viz poznamka u AEQ_ITEMS)
+      state.answers.aeq_duration_ms = durationMs;
+      state.screen = 'lbspend';
+      render();
+    },
+  });
+}
+
+/* ---------- financni otazky ---------- */
+function renderLbSpendScreen(app) {
+  if (state.answers.lootbox_opened_12mo === 'no') {
+    state.answers.lb_spend_amount = 0;
+    state.answers.lb_spend_currency = state.currency;
+    state.screen = 'income';
+    render();
+    return;
+  }
+  renderNumericScreen(app, {
+    title: T.lbSpendTitle, note: T.lbSpendNote, suffix: currencySuffix(), min: 0,
+    onSubmit: val => {
+      state.answers.lb_spend_amount = val;
+      state.answers.lb_spend_currency = state.currency;
+      state.screen = 'income';
+      render();
+    },
+  });
+}
+
+function renderIncomeScreen(app) {
+  renderNumericScreen(app, {
+    title: T.incomeTitle, note: T.incomeNote, suffix: currencySuffix(), min: 0,
+    onSubmit: val => {
+      state.answers.disposable_income_amount = val;
+      state.answers.disposable_income_currency = state.currency;
+      state.screen = 'gender';
+      render();
+    },
+  });
+}
+
+/* ---------- demografika (zbytek) ---------- */
+function renderGenderScreen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.genderTitle,
+    options: [
+      {value:'muz', label:'Muž'}, {value:'zena', label:'Žena'},
+      {value:'nebinarni', label:'Nebinární nebo jiné'}, {value:'neuvedeno', label:'Nechci uvést'},
+    ],
+    onSelect: val => { state.answers.gender = val; state.screen = 'country'; render(); },
+  });
+}
+
+function renderCountryScreen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.countryTitle,
+    options: [
+      {value:'cz', label:'Česká republika'}, {value:'sk', label:'Slovensko'}, {value:'jina', label:'Jiná země'},
+    ],
+    onSelect: val => {
+      state.answers.country = val;
+      if (val === 'jina') { state.screen = 'country_other'; render(); return; }
+      state.screen = 'platform';
+      render();
+    },
+  });
+}
+
+function renderCountryOtherScreen(app) {
+  renderTextScreen(app, {
+    title: T.countryOtherTitle, placeholder: 'např. Rakousko',
+    onSubmit: val => { state.answers.country_other = val; state.screen = 'platform'; render(); },
+  });
+}
+
+function renderPlatformScreen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.platformTitle,
+    options: [
+      {value:'pc', label:'PC'}, {value:'konzole', label:'Konzole'}, {value:'mobil', label:'Mobil'},
+      {value:'kombinace', label:'Kombinace více platforem'}, {value:'skip', label:'Nechci uvést'},
+    ],
+    onSelect: val => { state.answers.platform = val; finishSurvey(); },
+  });
+}
+
+/* ============================================================
+   ODESLANI DAT
+   ============================================================ */
+function finishSurvey() {
+  const payload = Object.assign(
+    { record_type:'survey', participant_id: state.participantId, study_id: CONFIG.STUDY_ID,
+      currency: state.currency, amount_eur: CONFIG.AMOUNT_EUR,
+      started_at: state.studyStartIso, finished_at: new Date().toISOString() },
+    state.answers
+  );
+  state.lastPayload = payload;
+  state.screen = 'thanks';
+  render();
+  submitData(payload);
+}
+
+function submitScreenedOut(reason, age) {
+  postToScript({ record_type:'screened_out', study_id: CONFIG.STUDY_ID, reason,
+    age: age != null ? age : null, timestamp: new Date().toISOString() });
+}
+
+async function postToScript(payload) {
+  if (!CONFIG.GOOGLE_SCRIPT_URL) return 'not_configured';
+  try {
+    await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+    });
+    return 'sent';
+  } catch (err) {
+    return 'error';
+  }
+}
+
+async function submitData(payload) {
+  const status = await postToScript(payload);
+  state.sendStatus = status === 'not_configured' ? 'not_configured' : status;
+  renderThanksStatus();
+}
+
+async function submitRaffleEmail(email) {
+  // ZAMERNE bez participant_id — email se neprovazuje s odpovedmi.
+  const status = await postToScript({ record_type:'raffle', study_id: CONFIG.STUDY_ID, email,
+    timestamp: new Date().toISOString() });
+  const noteEl = document.getElementById('raffleStatus');
+  if (noteEl) noteEl.textContent = status === 'sent' ? T.raffleSentMsg :
+    (status === 'not_configured' ? T.raffleNotConfiguredMsg : T.raffleErrorMsg);
+}
+
+function renderThanksStatus() {
+  const el = document.getElementById('statusNote');
+  if (!el) return;
+  if (state.sendStatus === 'sent') {
+    el.className = 'status-note ok'; el.textContent = T.sentOk;
+  } else if (state.sendStatus === 'error') {
+    el.className = 'status-note warn'; el.textContent = T.sentError;
+    document.getElementById('backupBtn').style.display = 'block';
+  } else if (state.sendStatus === 'not_configured') {
+    el.className = 'status-note warn'; el.textContent = T.notConfigured;
+    document.getElementById('backupBtn').style.display = 'block';
+  }
+}
+
+function renderThanks(app) {
+  app.innerHTML =
+    '<h1>' + T.thanksTitle + '</h1>' +
+    '<p>' + T.thanksBody + '</p>' +
+    '<div class="pid-box"><span id="pidText">' + state.participantId + '</span>' +
+    '<button id="copyPid">' + T.copyBtn + '</button></div>' +
+    '<div id="statusNote" class="status-note ok">…</div>' +
+    '<button class="btn-secondary" id="backupBtn" style="display:none">' + T.backupBtn + '</button>' +
+    '<div class="raffle-box">' +
+      '<h2>' + T.raffleTitle + '</h2>' +
+      '<p class="muted">' + T.raffleBody + '</p>' +
+      '<input type="email" class="text-input" id="raffleEmail" placeholder="' + T.raffleEmailPlaceholder + '">' +
+      '<button class="btn-primary" id="raffleSend">' + T.raffleSendBtn + '</button>' +
+      '<p class="muted" id="raffleStatus"></p>' +
+    '</div>';
+
+  document.getElementById('copyPid').addEventListener('click', () => {
+    navigator.clipboard.writeText(state.participantId).then(() => {
+      document.getElementById('copyPid').textContent = T.copiedBtn;
+    });
+  });
+  document.getElementById('backupBtn').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(state.lastPayload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = state.participantId + '.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+  document.getElementById('raffleSend').addEventListener('click', () => {
+    const email = document.getElementById('raffleEmail').value.trim();
+    if (!email || email.indexOf('@') === -1) return;
+    submitRaffleEmail(email);
+  });
+  renderThanksStatus();
+}
+
+render();
+</script>
+</body>
+</html>
