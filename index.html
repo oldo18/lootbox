@@ -115,6 +115,10 @@
   .likert-dot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .likert-progress { font-size: 12.5px; color: var(--text-muted); text-align: center; margin-top: 14px; }
 
+  .progress-footer { margin-top: 28px; }
+  .progress-footer .progress-bar { margin-bottom: 8px; }
+  .progress-footer-label { font-size: 12px; color: var(--text-muted); text-align: center; }
+
   .logo-row { display: flex; justify-content: center; margin-bottom: 22px; }
   .logo-row img { max-height: 46px; max-width: 100%; }
   .consent-box {
@@ -144,10 +148,16 @@ const CONFIG = {
   AMOUNT_EUR: 1000,
   EUR_TO_CZK: 24.2,
   CZK_RATE_NOTE: 'kurz k 16. 7. 2026',
-  GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwM07n-VJ-TTDQ8UzPXxgNa-SubEAxCriJH0PqS6S31jUjQAmmrw2YdWT0WOxVGDkax/exec',       // jedna URL, routuje se podle record_type (data / screened_out / raffle)
+  // Nastav do Supabase: Project URL + anon key, potom nastav USE_SUPABASE = true.
+  // Pokud nechceš používať Supabase, môžeš nechať GOOGLE_SCRIPT_URL a USE_SUPABASE = false.
+  GOOGLE_SCRIPT_URL: '',
+  SUPABASE_URL: 'https://ndewvvwfziqrhobubzln.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_tVFK-FwPMpRxa_DhBBcd_A_9ZnKlU8O',
+  USE_SUPABASE: true,
   MIN_PLAUSIBLE_RT_MS: 300,
   MIN_AGE: 18,
   STUDY_ID: 'lootbox_dd_v2',
+  CONTACT_EMAIL: 'DOPLNIT@email.cz', // TODO: Oldo — doplnit skutecny kontaktni e-mail pred ostrym sberem
 };
 
 /* Texty — cele v cestine. Mena (EUR/CZK) je nezavisly prepinac vpravo hore,
@@ -157,7 +167,7 @@ const T = {
   introBody:
     'Tento dotazník je součástí výzkumu v rámci diplomové práce na Fakultě sociálních studií ' +
     'Masarykovy univerzity. Zjišťujeme souvislosti mezi hraním videoher, nákupem lootboxů ' +
-    'a rozhodováním o odměnách v čase. Vyplnění zabere přibližně 5–8 minut. Výzkum je určen pouze ' +
+    'a rozhodováním o odměnách v čase. Vyplnění zabere přibližně 7 minut. Výzkum je určen pouze ' +
     'pro <strong>osoby starší 18 let</strong>.',
   introRaffle:
     'Pokud budete chtít, na konci se budete moci dobrovolně zapojit do žrebování o <strong>5× herní ' +
@@ -199,10 +209,12 @@ const T = {
   rlbiNote: 'Následující tvrzení se týkají vašich zkušeností s lootboxy. U každého tvrzení klikněte na ' +
     'bod na škále, který nejlépe vyjadřuje, do jaké míry s ním souhlasíte — od "rozhodně nesouhlasím" ' +
     'po "rozhodně souhlasím". Odpovězte prosím na všechna tvrzení.',
-  aeqTitle: 'Hraní online her',
-  aeqNote: 'Následující tvrzení se týkají vašeho hraní online her obecně (nejen lootboxů). U každého ' +
+  aeq1Title: 'Hraní online her (1/2)',
+  aeq1Note: 'Následující tvrzení se týkají vašeho hraní online her obecně (nejen lootboxů). U každého ' +
     'tvrzení klikněte na bod na škále, který nejlépe vyjadřuje, do jaké míry s ním souhlasíte. ' +
     'Odpovězte prosím na všechna tvrzení.',
+  aeq2Title: 'Hraní online her (2/2)',
+  aeq2Note: 'Ještě několik posledních tvrzení ke hraní online her. Odpovězte prosím na všechna tvrzení.',
 
   lbSpendTitle: 'Kolik peněz jste během posledních 30 dnů celkem utratil/a za lootboxy nebo jiné náhodné herní odměny?',
   lbSpendNote: 'Zahrňte také placenou herní měnu, kterou jste použil/a k otevření lootboxů. Pokud jste nic neutratil/a, uveďte 0.',
@@ -210,9 +222,13 @@ const T = {
   incomeNote: 'Zahrňte peníze, které jste mohl/a podle vlastního uvážení použít například na zábavu, hry, koníčky nebo nákupy. Pokud nemáte pravidelný příjem, zahrňte také kapesné nebo jiné peníze, které jste měl/a k dispozici.',
 
   genderTitle: 'Jaké je vaše genderové zařazení?',
+  educationTitle: 'Jaké je vaše nejvyšší dosažené vzdělání?',
+  employmentTitle: 'Jaký je váš současný pracovní/studijní status?',
   countryTitle: 'Ve které zemi v současnosti žijete?',
   countryOtherTitle: 'Uveďte prosím zemi',
   platformTitle: 'Na jaké platformě nejčastěji hrajete?',
+  gamePlayedTitle: 'Kterou hru v současnosti hrajete nejčastěji?',
+  gamePlayedOtherTitle: 'Uveďte prosím název hry',
 
   thanksTitle: 'Děkujeme za vyplnění',
   thanksBody: 'Vaše odpovědi byly zaznamenány. Níže je váš kód účastníka — uložte si ho, může se hodit, ' +
@@ -233,6 +249,10 @@ const T = {
   raffleSentMsg: 'Děkujeme, e-mail byl zaznamenán.',
   raffleErrorMsg: 'E-mail se nepodařilo odeslat. Zkuste to prosím znovu, případně později.',
   raffleNotConfiguredMsg: 'Zápis do žrebování zatím není technicky nastaven (chybí GOOGLE_SCRIPT_URL).',
+  raffleThanksTitle: 'Byli jste zapojeni do žrebování',
+  raffleThanksBody: 'Děkujeme, váš e-mail byl zaznamenán. V případě výhry vás budeme kontaktovat. ' +
+    'Ještě jednou děkujeme za účast ve výzkumu! S případnými dotazy se prosím obraťte na ' +
+    '<a href="mailto:' + CONFIG.CONTACT_EMAIL + '">' + CONFIG.CONTACT_EMAIL + '</a>.',
 };
 
 /* ============================================================
@@ -302,7 +322,7 @@ const RLBI_SCALE = [
    'coding' u kazde polozky je jen informativni poznamka z Oldovho
    zdroje (primé/obracene), NEPOUZIVA se v kodu.
    ============================================================ */
-const AEQ_ITEMS = [
+const AEQ_ITEMS_1 = [
   {key:'aeq_1',  coding:'reversed', text:'Někdy zanedbávám důležité věci kvůli hraní online her.'},
   {key:'aeq_2',  coding:'reversed', text:'Můj společenský život občas trpí kvůli hraní online her.'},
   {key:'aeq_3',  coding:'reversed', text:'Hraní online her mi někdy narušuje pracovní povinnosti.'},
@@ -315,6 +335,8 @@ const AEQ_ITEMS = [
   {key:'aeq_10', coding:'reversed', text:'Občas se kvůli hraní online her pořádně nenajím.'},
   {key:'aeq_11', coding:'reversed', text:'Někdy jdu hrát, abych se vyhnul/a společnosti druhých.'},
   {key:'aeq_12', coding:'reversed', text:'Často mám pocit, že za hraní online her utrácím více peněz, než si mohu dovolit.'},
+];
+const AEQ_ITEMS_2 = [
   {key:'aeq_13', coding:'reversed', text:'Vadilo by mi, kdybych už nikdy online hry nehrál/a.'},
   {key:'aeq_14', coding:'reversed', text:'Při pomyšlení na hru se cítím šťastný/á.'},
   {key:'aeq_15', coding:'direct',   text:'Čím méně mám s hraním online her společného, tím lépe.'},
@@ -329,6 +351,53 @@ const AEQ_ITEMS = [
 ];
 const AEQ_SCALE = [
   {v:1,label:'Rozhodně souhlasím'},{v:2,label:'Souhlasím'},{v:3,label:'Nesouhlasím'},{v:4,label:'Rozhodně nesouhlasím'},
+];
+
+/* ============================================================
+   DEMOGRAFIE — vzdelanie, zamestnanie
+   ============================================================ */
+const EDUCATION_OPTIONS = [
+  {value:'zakladni', label:'Základní'},
+  {value:'stredni_bez_maturity', label:'Střední bez maturity (vyučen/a)'},
+  {value:'stredni_s_maturitou', label:'Střední s maturitou'},
+  {value:'vyssi_odborne', label:'Vyšší odborné'},
+  {value:'vysokoskolske', label:'Vysokoškolské'},
+  {value:'jine', label:'Jiné'},
+];
+const EMPLOYMENT_OPTIONS = [
+  {value:'student', label:'Student/ka'},
+  {value:'zamestnany', label:'Zaměstnaný/á'},
+  {value:'osvc', label:'OSVČ'},
+  {value:'nezamestnany', label:'Nezaměstnaný/á'},
+  {value:'rodicovska_duchod', label:'Rodičovská dovolená / důchod'},
+  {value:'jine', label:'Jiné'},
+];
+
+/* ============================================================
+   NEJHRANEJSI HRY — priblizny odhad popularity, uprav podle uvazeni
+   ============================================================ */
+const GAME_OPTIONS = [
+  {value:'fortnite', label:'Fortnite'},
+  {value:'minecraft', label:'Minecraft'},
+  {value:'league_of_legends', label:'League of Legends'},
+  {value:'cs2', label:'Counter-Strike 2'},
+  {value:'valorant', label:'Valorant'},
+  {value:'gta', label:'Grand Theft Auto V / GTA Online'},
+  {value:'cod', label:'Call of Duty (Warzone / Modern Warfare)'},
+  {value:'ea_fc', label:'EA Sports FC (FIFA)'},
+  {value:'roblox', label:'Roblox'},
+  {value:'apex', label:'Apex Legends'},
+  {value:'overwatch', label:'Overwatch 2'},
+  {value:'dota2', label:'Dota 2'},
+  {value:'rocket_league', label:'Rocket League'},
+  {value:'pubg', label:'PUBG: Battlegrounds'},
+  {value:'wow', label:'World of Warcraft'},
+  {value:'genshin', label:'Genshin Impact'},
+  {value:'honkai_star_rail', label:'Honkai: Star Rail'},
+  {value:'brawl_stars', label:'Brawl Stars'},
+  {value:'clash', label:'Clash Royale / Clash of Clans'},
+  {value:'sims4', label:'The Sims 4'},
+  {value:'other', label:'Jiná hra'},
 ];
 
 /* ============================================================
@@ -360,6 +429,46 @@ function formatAmount(eur) {
 function currencySuffix() { return state.currency === 'czk' ? 'Kč' : '€'; }
 
 /* ============================================================
+   CELKOVY PROGRESS (footer dole na obrazovce) — pocita se pres
+   cely dotaznik, 'trial' (DDT uloha) se pocita jako 6 samostatnych
+   kroku podle state.trial. Obrazovky mimo tento seznam (intro,
+   instructions, ineligible_*, thanks) progress neukazuji.
+   'country_other' se pocita jako alias 'country'.
+   ============================================================ */
+const PROGRESS_FLOW = [
+  'age', 'played30', 'hours7d', 'game_played', 'lootbox12mo', 'trial',
+  'rlbi', 'aeq1', 'aeq2', 'lbspend', 'income',
+  'gender', 'education', 'employment', 'country', 'platform',
+];
+const PROGRESS_TRIAL_STEPS = 6;
+
+function getProgress() {
+  const screen = state.screen === 'country_other' ? 'country' : state.screen;
+  const idx = PROGRESS_FLOW.indexOf(screen);
+  if (idx === -1) return null;
+  const trialIdx = PROGRESS_FLOW.indexOf('trial');
+  const total = PROGRESS_FLOW.length - 1 + PROGRESS_TRIAL_STEPS;
+  let done;
+  if (idx < trialIdx) {
+    done = idx;
+  } else if (idx === trialIdx) {
+    done = trialIdx + (state.trial - 1);
+  } else {
+    done = trialIdx + PROGRESS_TRIAL_STEPS + (idx - trialIdx - 1);
+  }
+  return { step: done + 1, total, percent: Math.round(((done + 1) / total) * 100) };
+}
+
+function renderProgressFooter() {
+  const p = getProgress();
+  if (!p) return '';
+  return '<div class="progress-footer">' +
+    '<div class="progress-bar"><div class="progress-bar-fill" style="width:' + p.percent + '%"></div></div>' +
+    '<div class="progress-footer-label">' + p.step + ' / ' + p.total + ' (' + p.percent + ' %)</div>' +
+  '</div>';
+}
+
+/* ============================================================
    OBECNE RENDER POMUCKY
    ============================================================ */
 function renderCurrencyToggle() {
@@ -381,7 +490,8 @@ function renderNumericScreen(app, opts) {
       '<input type="number" id="numInput" inputmode="decimal" placeholder="0">' +
       (opts.suffix ? '<span class="numeric-suffix">' + opts.suffix + '</span>' : '') +
     '</div>' +
-    '<button class="btn-primary" id="numContinue">' + T.continueBtn + '</button>';
+    '<button class="btn-primary" id="numContinue">' + T.continueBtn + '</button>' +
+    renderProgressFooter();
   const input = document.getElementById('numInput');
   const btn = document.getElementById('numContinue');
   const submit = () => {
@@ -405,7 +515,8 @@ function renderSingleChoiceScreen(app, opts) {
     (opts.note ? '<p class="muted">' + opts.note + '</p>' : '') +
     '<div class="choices">' +
       opts.options.map(o => '<button class="choice-btn" data-value="' + o.value + '">' + o.label + '</button>').join('') +
-    '</div>';
+    '</div>' +
+    renderProgressFooter();
   app.querySelectorAll('.choice-btn').forEach(b => {
     b.addEventListener('click', () => opts.onSelect(b.dataset.value));
   });
@@ -416,7 +527,8 @@ function renderTextScreen(app, opts) {
     '<h1>' + opts.title + '</h1>' +
     (opts.note ? '<p class="muted">' + opts.note + '</p>' : '') +
     '<input type="text" class="text-input" id="txtInput" placeholder="' + (opts.placeholder || '') + '">' +
-    '<button class="btn-primary" id="txtContinue">' + T.continueBtn + '</button>';
+    '<button class="btn-primary" id="txtContinue">' + T.continueBtn + '</button>' +
+    renderProgressFooter();
   const input = document.getElementById('txtInput');
   const btn = document.getElementById('txtContinue');
   btn.addEventListener('click', () => opts.onSubmit((input.value || '').trim()));
@@ -445,7 +557,8 @@ function renderLikertScreen(app, opts) {
     (opts.note ? '<p class="muted">' + opts.note + '</p>' : '') +
     rows +
     '<button class="btn-primary" id="likertContinue">' + T.continueBtn + '</button>' +
-    '<div class="likert-progress" id="likertProgress"></div>';
+    '<div class="likert-progress" id="likertProgress"></div>' +
+    renderProgressFooter();
 
   const answers = {};
   const btn = document.getElementById('likertContinue');
@@ -498,20 +611,26 @@ function render() {
     age: renderAgeScreen,
     played30: renderPlayed30Screen,
     hours7d: renderHours7dScreen,
+    game_played: renderGamePlayedScreen,
+    game_played_other: renderGamePlayedOtherScreen,
     lootbox12mo: renderLootbox12moScreen,
     instructions: renderInstructions,
     trial: renderTrial,
     rlbi: renderRlbiScreen,
-    aeq: renderAeqScreen,
+    aeq1: renderAeq1Screen,
+    aeq2: renderAeq2Screen,
     lbspend: renderLbSpendScreen,
     income: renderIncomeScreen,
     gender: renderGenderScreen,
+    education: renderEducationScreen,
+    employment: renderEmploymentScreen,
     country: renderCountryScreen,
     country_other: renderCountryOtherScreen,
     platform: renderPlatformScreen,
     thanks: renderThanks,
   };
   (map[state.screen] || renderIntro)(app);
+  window.scrollTo(0, 0);
 }
 
 /* ---------- intro / eligibilita ---------- */
@@ -579,7 +698,27 @@ function renderPlayed30Screen(app) {
 function renderHours7dScreen(app) {
   renderNumericScreen(app, {
     title: T.hours7dTitle, suffix: T.hours7dSuffix, min: 0, max: 168,
-    onSubmit: val => { state.answers.hours_last_7d = val; state.screen = 'lootbox12mo'; render(); },
+    onSubmit: val => { state.answers.hours_last_7d = val; state.screen = 'game_played'; render(); },
+  });
+}
+
+function renderGamePlayedScreen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.gamePlayedTitle,
+    options: GAME_OPTIONS,
+    onSelect: val => {
+      state.answers.game_played = val;
+      if (val === 'other') { state.screen = 'game_played_other'; render(); return; }
+      state.screen = 'lootbox12mo';
+      render();
+    },
+  });
+}
+
+function renderGamePlayedOtherScreen(app) {
+  renderTextScreen(app, {
+    title: T.gamePlayedOtherTitle, placeholder: 'např. Stardew Valley',
+    onSubmit: val => { state.answers.game_played_other = val; state.screen = 'lootbox12mo'; render(); },
   });
 }
 
@@ -641,7 +780,8 @@ function renderTrial(app) {
   app.innerHTML =
     '<div class="progress-label">' + T.questionLabel(state.trial) + '</div>' +
     '<div class="progress-bar"><div class="progress-bar-fill" style="width:' + (state.trial / 6 * 100) + '%"></div></div>' +
-    '<div class="choices">' + buttonHtml + '</div>';
+    '<div class="choices">' + buttonHtml + '</div>' +
+    renderProgressFooter();
 
   document.querySelectorAll('.choice-btn').forEach(b => {
     b.addEventListener('click', () => handleChoice(b.dataset.choice, content));
@@ -711,23 +851,38 @@ function finishDiscountingTask({ attentionTriggered, attentionPassed, k }) {
 /* ---------- RLBI / AEQ ---------- */
 function renderRlbiScreen(app) {
   renderLikertScreen(app, {
-    title: T.rlbiTitle, note: T.rlbiNote, items: RLBI_ITEMS, scale: RLBI_SCALE, pageKey: 'rlbi',
+    title: T.rlbiTitle, note: T.rlbiNote + ' (celkem ' + RLBI_ITEMS.length + ' tvrzení)',
+    items: RLBI_ITEMS, scale: RLBI_SCALE, pageKey: 'rlbi',
     onSubmit: (answers, durationMs) => {
       Object.assign(state.answers, answers);
       state.answers.rlbi_total = RLBI_ITEMS.reduce((s, it) => s + answers[it.key], 0);
       state.answers.rlbi_duration_ms = durationMs;
-      state.screen = 'aeq';
+      state.screen = 'aeq1';
       render();
     },
   });
 }
 
-function renderAeqScreen(app) {
+function renderAeq1Screen(app) {
   renderLikertScreen(app, {
-    title: T.aeqTitle, note: T.aeqNote, items: AEQ_ITEMS, scale: AEQ_SCALE, pageKey: 'aeq',
+    title: T.aeq1Title, note: T.aeq1Note + ' (celkem ' + AEQ_ITEMS_1.length + ' tvrzení)',
+    items: AEQ_ITEMS_1, scale: AEQ_SCALE, pageKey: 'aeq1',
     onSubmit: (answers, durationMs) => {
       Object.assign(state.answers, answers); // surove polozky, zadne subskore (viz poznamka u AEQ_ITEMS)
-      state.answers.aeq_duration_ms = durationMs;
+      state.answers.aeq1_duration_ms = durationMs;
+      state.screen = 'aeq2';
+      render();
+    },
+  });
+}
+
+function renderAeq2Screen(app) {
+  renderLikertScreen(app, {
+    title: T.aeq2Title, note: T.aeq2Note + ' (celkem ' + AEQ_ITEMS_2.length + ' tvrzení)',
+    items: AEQ_ITEMS_2, scale: AEQ_SCALE, pageKey: 'aeq2',
+    onSubmit: (answers, durationMs) => {
+      Object.assign(state.answers, answers);
+      state.answers.aeq2_duration_ms = durationMs;
       state.screen = 'lbspend';
       render();
     },
@@ -774,7 +929,23 @@ function renderGenderScreen(app) {
       {value:'muz', label:'Muž'}, {value:'zena', label:'Žena'},
       {value:'nebinarni', label:'Nebinární nebo jiné'}, {value:'neuvedeno', label:'Nechci uvést'},
     ],
-    onSelect: val => { state.answers.gender = val; state.screen = 'country'; render(); },
+    onSelect: val => { state.answers.gender = val; state.screen = 'education'; render(); },
+  });
+}
+
+function renderEducationScreen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.educationTitle,
+    options: EDUCATION_OPTIONS,
+    onSelect: val => { state.answers.education = val; state.screen = 'employment'; render(); },
+  });
+}
+
+function renderEmploymentScreen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.employmentTitle,
+    options: EMPLOYMENT_OPTIONS,
+    onSelect: val => { state.answers.employment = val; state.screen = 'country'; render(); },
   });
 }
 
@@ -833,8 +1004,35 @@ function submitScreenedOut(reason, age) {
 }
 
 async function postToScript(payload) {
-  if (!CONFIG.GOOGLE_SCRIPT_URL) return 'not_configured';
   try {
+    if (isSupabaseConfigured()) {
+      if (payload.record_type === 'survey') {
+        const row = {
+          participant_id: payload.participant_id,
+          study_id: payload.study_id,
+          currency: payload.currency || null,
+          amount_eur: payload.amount_eur || null,
+          submitted_at: payload.finished_at || payload.submitted_at || new Date().toISOString(),
+          payload: payload,
+        };
+        return await postToSupabase('survey_responses', row);
+      }
+      if (payload.record_type === 'screened_out') {
+        return await postToSupabase('screened_out', {
+          study_id: payload.study_id,
+          reason: payload.reason,
+          age: payload.age != null ? Number(payload.age) : null,
+        });
+      }
+      if (payload.record_type === 'raffle') {
+        return await postToSupabase('raffle_entries', {
+          study_id: payload.study_id,
+          email: payload.email,
+        });
+      }
+    }
+
+    if (!CONFIG.GOOGLE_SCRIPT_URL) return 'not_configured';
     await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -852,13 +1050,43 @@ async function submitData(payload) {
   renderThanksStatus();
 }
 
+function isSupabaseConfigured() {
+  return !!CONFIG.SUPABASE_URL && !!CONFIG.SUPABASE_ANON_KEY && CONFIG.USE_SUPABASE;
+}
+
+async function postToSupabase(tableName, row) {
+  if (!isSupabaseConfigured()) return null;
+  const baseUrl = CONFIG.SUPABASE_URL.replace(/\/$/, '');
+  const response = await fetch(baseUrl + '/rest/v1/' + tableName, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: CONFIG.SUPABASE_ANON_KEY,
+      Authorization: 'Bearer ' + CONFIG.SUPABASE_ANON_KEY,
+      Prefer: 'return=minimal',
+    },
+    body: JSON.stringify(row),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || ('Supabase insert failed: ' + response.status));
+  }
+  return 'sent';
+}
+
 async function submitRaffleEmail(email) {
   // ZAMERNE bez participant_id — email se neprovazuje s odpovedmi.
   const status = await postToScript({ record_type:'raffle', study_id: CONFIG.STUDY_ID, email,
     timestamp: new Date().toISOString() });
+  if (status === 'sent') {
+    const box = document.querySelector('.raffle-box');
+    if (box) {
+      box.innerHTML = '<h2>' + T.raffleThanksTitle + '</h2><p class="muted">' + T.raffleThanksBody + '</p>';
+    }
+    return;
+  }
   const noteEl = document.getElementById('raffleStatus');
-  if (noteEl) noteEl.textContent = status === 'sent' ? T.raffleSentMsg :
-    (status === 'not_configured' ? T.raffleNotConfiguredMsg : T.raffleErrorMsg);
+  if (noteEl) noteEl.textContent = status === 'not_configured' ? T.raffleNotConfiguredMsg : T.raffleErrorMsg;
 }
 
 function renderThanksStatus() {
