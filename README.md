@@ -39,8 +39,5 @@ Security & ethics notes
 - Do not publish service_role or DB secret keys. Use only the anon/publishable key in the browser.
 - Update consent text in index.html according to your ethics committee before real data collection.
 
-If you want, I can:
-- create the SQL VIEW for flattening payload (tell me exactly which fields you want), or
-- prepare an R script that downloads and flattens the data automatically.
 
 Contact for this project: 567844@mail.muni.cz
