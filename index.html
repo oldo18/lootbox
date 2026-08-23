@@ -142,7 +142,7 @@
 
 <script>
 /* ============================================================
-   KONFIGURACE — uprav podle potreby
+   KONFIGURÁCIA
    ============================================================ */
 const CONFIG = {
   AMOUNT_EUR: 1000,
@@ -158,8 +158,8 @@ const CONFIG = {
   CONTACT_EMAIL: '567844@mail.muni.cz',
 };
 
-/* Texty — cele v cestine. Mena (EUR/CZK) je nezavisly prepinac vpravo hore,
-   pouziva se jak v uloze na diskontovani, tak pri financnich otazkach. */
+/* Texty — celé v češtine. Mena (EUR/CZK) je nezávislý prepínač vpravo hore,
+   používa sa v úlohe na diskontovanie aj pri finančných otázkach. */
 const T = {
   introTitle: 'Vítejte',
   introBody:
@@ -297,9 +297,8 @@ const ODD_K = {
 };
 
 /* ============================================================
-   RLBI — Risky Loot Box Index (5 polozek, skala 1-5, bez obracenych
-   polozek — vsechny stejnym smerem, prosty soucet je v poradku, ale
-   over si oficialni skorovani puvodni RLBI publikace pred pouzitim).
+   RLBI — Risky Loot Box Index (5 položiek, škála 1-5, bez obrátených
+   položiek, všetky rovnakým smerom, jednoduchý súčet).
    ============================================================ */
 const RLBI_ITEMS = [
   {key:'rlbi_1', text:'Vzrušení, které zažívám při otevírání lootboxů, mě přimělo si jich koupit více.'},
@@ -315,21 +314,12 @@ const RLBI_SCALE = [
 
 /* ============================================================
    AEQ — Addiction-Engagement Questionnaire (Charlton & Danforth;
-   ceska adaptace Blinka et al.)
+   česká adaptácia Blinka a kol.)
 
-   POZOR — DVE VECI K OVERENI PRED POUZITIM VYSLEDNYCH DAT:
-   1) Blinka, Skarupova & Mitterova (2016) popisuji skalu jako
-      1=rozhodne nesouhlasim ... 4=rozhodne souhlasim (STANDARDNI smer).
-      Zde je pouzit smer, ktery zadal Oldo (1=rozhodne souhlasim ...
-      4=rozhodne nesouhlasim, OBRACENY smer) — over si to na zdroji,
-      odkud tyto polozky mas, nez budes pocitat subskore.
-   2) Publikace popisuje 24 polozek (12 addiction + 12 engagement),
-      zde je jich 23 — over, jestli jedna nevypadla.
-   Surova data (aeq_1..aeq_23) se ukladaji presne tak, jak je respondent
-   zvolil na 4-bodove skale nize; zadne prepocitavani/sublskory se
-   NEDELA automaticky (viz navod-nastavenie.md).
-   'coding' u kazde polozky je jen informativni poznamka z Oldovho
-   zdroje (primé/obracene), NEPOUZIVA se v kodu.
+   Surové dáta (aeq_1..aeq_23) sa ukladajú presne tak, ako ich respondent
+   zvolil na 4-bodovej škále nižšie, žiadne prepočítavanie na subskóre
+   sa automaticky nerobí. Pole 'coding' pri každej položke je len
+   informatívna poznámka (priame/obrátené), v kóde sa nepoužíva.
    ============================================================ */
 const AEQ_ITEMS_1 = [
   {key:'aeq_1',  coding:'reversed', text:'Někdy zanedbávám důležité věci kvůli hraní online her.'},
@@ -363,14 +353,16 @@ const AEQ_SCALE = [
 ];
 
 /* ============================================================
-   DEMOGRAFIE — vzdelanie, zamestnanie
+   DEMOGRAFIA — vzdelanie, zamestnanie
    ============================================================ */
 const EDUCATION_OPTIONS = [
   {value:'zakladni', label:'Základní'},
   {value:'stredni_bez_maturity', label:'Střední bez maturity (vyučen/a)'},
   {value:'stredni_s_maturitou', label:'Střední s maturitou'},
   {value:'vyssi_odborne', label:'Vyšší odborné'},
-  {value:'vysokoskolske', label:'Vysokoškolské'},
+  {value:'vysokoskolske_1', label:'Vysokoškolské 1. stupeň (bakalářské)'},
+  {value:'vysokoskolske_2', label:'Vysokoškolské 2. stupeň (magisterské)'},
+  {value:'vysokoskolske_3', label:'Vysokoškolské 3. stupeň (doktorské)'},
   {value:'jine', label:'Jiné'},
 ];
 const EMPLOYMENT_OPTIONS = [
@@ -383,7 +375,7 @@ const EMPLOYMENT_OPTIONS = [
 ];
 
 /* ============================================================
-   NEJHRANEJSI HRY — priblizny odhad popularity, uprav podle uvazeni
+   NAJHRANEJŠIE HRY
    ============================================================ */
 const GAME_OPTIONS = [
   {value:'fortnite', label:'Fortnite'},
@@ -410,17 +402,17 @@ const GAME_OPTIONS = [
 ];
 
 /* ============================================================
-   STAV APLIKACE
+   STAV APLIKÁCIE
    ============================================================ */
 const state = {
-  currency: 'czk',        // 'czk' | 'eur' — nezavisle od jazyka (jazyk je jen cestina)
+  currency: 'czk',        // 'czk' | 'eur' — nezávisle od jazyka (jazyk je len čeština)
   screen: 'intro',
-  // diskontovaci uloha:
+  // diskontovacia úloha:
   trial: 0, index: 32, step: 16, choices: [], trialLog: [], trialStartTs: null,
   attentionType: null,
-  // ostatni odpovedi (plochy objekt, klic = nazev polozky):
+  // ostatné odpovede (plochý objekt, kľúč = názov položky):
   answers: {},
-  // pomocne casove znacky pro page-level RT (speeder check):
+  // pomocné časové značky pre page-level RT (speeder check):
   pageStartTs: {},
   participantId: 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
   studyStartIso: new Date().toISOString(),
@@ -438,11 +430,11 @@ function formatAmount(eur) {
 function currencySuffix() { return state.currency === 'czk' ? 'Kč' : '€'; }
 
 /* ============================================================
-   CELKOVY PROGRESS (footer dole na obrazovce) — pocita se pres
-   cely dotaznik, 'trial' (DDT uloha) se pocita jako 6 samostatnych
-   kroku podle state.trial. Obrazovky mimo tento seznam (intro,
-   instructions, ineligible_*, thanks) progress neukazuji.
-   'country_other' se pocita jako alias 'country'.
+   CELKOVÝ PROGRESS (footer dole na obrazovke) — počíta sa cez
+   celý dotazník, 'trial' (DDT úloha) sa počíta ako 6 samostatných
+   krokov podľa state.trial. Obrazovky mimo tohto zoznamu (intro,
+   instructions, ineligible_*, thanks) progress nezobrazujú.
+   'country_other' sa počíta ako alias 'country'.
    ============================================================ */
 const PROGRESS_FLOW = [
   'age', 'played30', 'hours7d', 'game_played', 'lootbox12mo', 'trial',
@@ -478,12 +470,12 @@ function renderProgressFooter() {
 }
 
 /* ============================================================
-   OBECNE RENDER POMUCKY
+   VŠEOBECNÉ RENDER POMÔCKY
    ============================================================ */
 function renderCurrencyToggle() {
   const el = document.getElementById('langToggle');
-  const onlyOnTrial = state.screen === 'trial';
-  if (!onlyOnTrial) {
+  const showOnScreens = ['trial', 'lbspend', 'income'];
+  if (!showOnScreens.includes(state.screen)) {
     el.innerHTML = '';
     return;
   }
@@ -613,7 +605,7 @@ function renderLikertScreen(app, opts) {
 }
 
 /* ============================================================
-   HLAVNI RENDER DISPATCHER
+   HLAVNÝ RENDER DISPATCHER
    ============================================================ */
 function render() {
   renderCurrencyToggle();
@@ -748,7 +740,7 @@ function renderLootbox12moScreen(app) {
   });
 }
 
-/* ---------- diskontovaci uloha (6 trialu) ---------- */
+/* ---------- diskontovacia úloha (6 pokusov) ---------- */
 function renderInstructions(app) {
   app.innerHTML =
     '<h1>' + T.instructionsTitle + '</h1>' +
@@ -882,7 +874,7 @@ function renderAeq1Screen(app) {
     title: T.aeq1Title, note: T.aeq1Note + ' (celkem ' + AEQ_ITEMS_1.length + ' tvrzení)',
     items: AEQ_ITEMS_1, scale: AEQ_SCALE, pageKey: 'aeq1',
     onSubmit: (answers, durationMs) => {
-      Object.assign(state.answers, answers); // surove polozky, zadne subskore (viz poznamka u AEQ_ITEMS)
+      Object.assign(state.answers, answers); // surové položky, žiadne subskóre sa neprepočítava
       state.answers.aeq1_duration_ms = durationMs;
       state.screen = 'aeq2';
       render();
@@ -903,7 +895,7 @@ function renderAeq2Screen(app) {
   });
 }
 
-/* ---------- financni otazky ---------- */
+/* ---------- finančné otázky ---------- */
 function renderLbSpendScreen(app) {
   if (state.answers.lootbox_opened_12mo === 'no') {
     state.answers.lb_spend_amount = 0;
@@ -935,7 +927,7 @@ function renderIncomeScreen(app) {
   });
 }
 
-/* ---------- demografika (zbytek) ---------- */
+/* ---------- demografia (zvyšok) ---------- */
 function renderGenderScreen(app) {
   renderSingleChoiceScreen(app, {
     title: T.genderTitle,
@@ -997,7 +989,7 @@ function renderPlatformScreen(app) {
 }
 
 /* ============================================================
-   ODESLANI DAT
+   ODOSIELANIE DÁT
    ============================================================ */
 function finishSurvey() {
   const payload = Object.assign(
@@ -1089,7 +1081,7 @@ async function postToSupabase(tableName, row) {
 }
 
 async function submitRaffleEmail(email) {
-  // ZAMERNE bez participant_id — email se neprovazuje s odpovedmi.
+  // ZÁMERNE bez participant_id — e-mail sa neprepája s odpoveďami.
   const status = await postToScript({ record_type:'raffle', study_id: CONFIG.STUDY_ID, email,
     timestamp: new Date().toISOString() });
   if (status === 'sent') {
