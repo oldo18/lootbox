@@ -172,21 +172,15 @@ const T = {
     'poukázku Steam v hodnotě 10 €</strong>. Pro tento účel se e-mail uloží zcela odděleně od vašich ' +
     'odpovědí a nijak se s nimi nepropojí.',
   consentText:
-    'Jmenuji se Oliver Chrkavý a studuji na Fakultě sociálních studií Masarykovy univerzity. Rád bych vás ' +
-    'požádal o účast ve výzkumu, který je součástí mé diplomové práce. Zjišťuji souvislosti mezi hraním ' +
-    'videoher, nákupem lootboxů a rozhodováním o odměnách v čase. Výzkumu se může zúčastnit každý, kdo je ' +
-    'starší 18 let a v posledních 30 dnech hrál nějakou videohru.<br><br>' +
-    'Nejprve vás požádám o zodpovězení pár otázek o vašich herních zvycích. Poté vás čeká krátký úkol, ve ' +
-    'kterém budete opakovaně volit mezi menší odměnou hned a větší odměnou později, a několik krátkých ' +
-    'škál týkajících se lootboxů a hraní her. Na konci se ještě zeptám na útratu za lootboxy a základní ' +
-    'demografické údaje. Celkově vám účast zabere přibližně 7 minut.<br><br>' +
-    'Výzkum je anonymní, nesbírám žádné vaše osobní údaje. Účast na výzkumu není nijak odměněna a není ' +
-    'pro vás spojena s žádnými riziky.<br><br>' +
+    'Jmenuji se Oliver Chrkavý a výzkum je součástí mé diplomové práce.<br><br>' +
+    'Kromě otázek o vašich herních návycích vás čeká krátký úkol, ve kterém budete opakovaně volit mezi ' +
+    'menší odměnou hned a větší odměnou později, a několik krátkých škál týkajících se lootboxů a hraní ' +
+    'her. Na konci se ještě zeptám na útratu za lootboxy a základní demografické údaje.<br><br>' +
+    'Výzkum je anonymní. Kromě e-mailu, který můžete na konci dobrovolně zadat pro zapojení do žrebování, ' +
+    'nezpracovávám žádné vaše další osobní údaje.<br><br>' +
     'Vaše účast je zcela dobrovolná. Dotazník můžete kdykoli v jeho průběhu opustit bez udání důvodu. ' +
     'Vzhledem k tomu, že dotazník je anonymní, po jeho odeslání již není možné vaši účast odvolat, protože ' +
     'vaše odpovědi nejde od ostatních odlišit.<br><br>' +
-    'Na konci dotazníku budete mít možnost dobrovolně zadat e-mail a zapojit se do žrebování o herní ' +
-    'poukázky. O zpracování tohoto e-mailu vás v tu chvíli požádám o samostatný souhlas.<br><br>' +
     'V případě jakýchkoli otázek se na mě můžete obrátit na e-mailu <a href="mailto:567844@mail.muni.cz">567844@mail.muni.cz</a>.',
   consentLabel: 'Souhlasím s účastí ve výzkumu za uvedených podmínek.',
   continueBtn: 'Pokračovat',
@@ -256,11 +250,10 @@ const T = {
   raffleTitle: 'Žrebování o Steam poukázku',
   raffleBody: 'Chcete se zapojit do žrebování o 5× herní poukázku Steam v hodnotě 10 €? Stačí zadat e-mail níže. ' +
     'Tento e-mail je osobní údaj, proto ho zpracovávám odděleně od vašich odpovědí na dotazník a nijak ho s nimi nepropojím. ' +
-    'Uchovám ho do ukončení výzkumu, poté ho smažu. Máte právo požadovat přístup k němu, jeho opravu nebo výmaz, právo kdykoli ' +
-    'odvolat souhlas s jeho zpracováním (napsáním na <a href="mailto:' + CONFIG.CONTACT_EMAIL + '">' + CONFIG.CONTACT_EMAIL + '</a>), ' +
-    'a právo podat stížnost Úřadu pro ochranu osobních údajů (www.uoou.cz). Správcem tohoto osobního údaje je Oliver Chrkavý, ' +
-    'Fakulta sociálních studií Masarykovy univerzity, <a href="mailto:' + CONFIG.CONTACT_EMAIL + '">' + CONFIG.CONTACT_EMAIL + '</a>, ' +
-    'pověřenec pro ochranu osobních údajů MU: poverenec@muni.cz. Odesláním e-mailu níže s tímto zpracováním souhlasíte.',
+    'Uchovám ho do ukončení sběru dat, poté proběhne žrebování a e-mail smažu; v případě výhry vás budu kontaktovat. ' +
+    'Máte právo požadovat přístup k němu, jeho opravu nebo výmaz, a právo kdykoli odvolat souhlas s jeho zpracováním ' +
+    '(napsáním na ' + CONFIG.CONTACT_EMAIL + '). Správcem tohoto osobního údaje je Oliver Chrkavý, Fakulta sociálních studií ' +
+    'Masarykovy univerzity, ' + CONFIG.CONTACT_EMAIL + '. Odesláním e-mailu níže s tímto zpracováním souhlasíte.',
   raffleEmailPlaceholder: 'vas@email.cz',
   raffleConsentLabel: 'Souhlasím se zpracováním mého e-mailu pro účast v žrebování.',
   raffleSendBtn: 'Odeslat e-mail',
@@ -491,6 +484,11 @@ function renderProgressFooter() {
    ============================================================ */
 function renderCurrencyToggle() {
   const el = document.getElementById('langToggle');
+  const onlyOnTrial = state.screen === 'trial';
+  if (!onlyOnTrial) {
+    el.innerHTML = '';
+    return;
+  }
   el.innerHTML = ['czk', 'eur'].map(c =>
     '<button class="lang-btn ' + (state.currency === c ? 'active' : '') + '" data-cur="' + c + '">' +
       c.toUpperCase() + '</button>'
