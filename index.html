@@ -65,10 +65,11 @@
   .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
   .btn-primary:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
   .btn-secondary {
-    background: none; border: 1.5px solid var(--border); color: var(--text); padding: 12px 20px;
-    border-radius: var(--radius); font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;
-    font-family: var(--font); margin-top: 10px;
+    background: none; border: 1.5px solid var(--border); color: var(--text); padding: 8px 14px;
+    border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: var(--font); margin-top: 10px; margin-bottom: 6px; width: auto; min-width: 92px;
   }
+  .back-row { display: flex; justify-content: flex-start; margin-top: 10px; }
   .consent-row { display: flex; gap: 12px; align-items: flex-start; margin: 22px 0; padding: 16px; background: var(--bg); border-radius: var(--radius); border: 1px solid var(--border); }
   .consent-row input { margin-top: 3px; width: 17px; height: 17px; flex-shrink: 0; }
   .consent-row label { font-size: 14px; line-height: 1.5; cursor: pointer; }
@@ -119,6 +120,13 @@
   .progress-footer .progress-bar { margin-bottom: 8px; }
   .progress-footer-label { font-size: 12px; color: var(--text-muted); text-align: center; }
 
+  .back-link-top {
+    background: none; border: none; color: var(--text-muted); padding: 5px 8px;
+    margin: 0 0 14px -8px; border-radius: 6px; font-size: 15px; font-weight: 500;
+    cursor: pointer; font-family: var(--font); display: inline-flex; align-items: center; gap: 3px;
+  }
+  .back-link-top:hover, .back-link-top:focus-visible { background: var(--accent-soft); color: var(--accent); outline: none; }
+
   .logo-row { display: flex; justify-content: center; margin-bottom: 22px; }
   .logo-row img { max-height: 46px; max-width: 100%; }
   .consent-box {
@@ -141,9 +149,6 @@
   <div class="card" id="app"></div>
 
 <script>
-/* ============================================================
-   KONFIGURÁCIA
-   ============================================================ */
 const CONFIG = {
   AMOUNT_EUR: 1000,
   EUR_TO_CZK: 24.2,
@@ -158,17 +163,15 @@ const CONFIG = {
   CONTACT_EMAIL: '567844@mail.muni.cz',
 };
 
-/* Texty — celé v češtine. Mena (EUR/CZK) je nezávislý prepínač vpravo hore,
-   používa sa v úlohe na diskontovanie aj pri finančných otázkach. */
 const T = {
-  introTitle: 'Vítejte',
+  introTitle: 'Výzkum hraní videoher',
   introBody:
     'Tento dotazník je součástí výzkumu v rámci diplomové práce na Fakultě sociálních studií ' +
     'Masarykovy univerzity. Zjišťujeme souvislosti mezi hraním videoher, nákupem lootboxů ' +
-    'a rozhodováním o odměnách v čase. Vyplnění zabere přibližně <strong>7 minut</strong>. Výzkum je určen pouze ' +
+    'a rozhodováním o odměnách v čase. Vyplnění zabere přibližně <strong>5 minut</strong>. Výzkum je určen pouze ' +
     'pro <strong>osoby starší 18 let</strong>.',
   introRaffle:
-    'Pokud budete chtít, na konci se budete moci dobrovolně zapojit do žrebování o <strong>5× herní ' +
+    'Pokud budete chtít, na konci se budete moci dobrovolně zapojit do losování o <strong>5× herní ' +
     'poukázku Steam v hodnotě 10 €</strong>. Pro tento účel se e-mail uloží zcela odděleně od vašich ' +
     'odpovědí a nijak se s nimi nepropojí.',
   consentText:
@@ -176,7 +179,7 @@ const T = {
     'Kromě otázek o vašich herních návycích vás čeká krátký úkol, ve kterém budete opakovaně volit mezi ' +
     'menší odměnou hned a větší odměnou později, a několik krátkých škál týkajících se lootboxů a hraní ' +
     'her. Na konci se ještě zeptám na útratu za lootboxy a základní demografické údaje.<br><br>' +
-    'Výzkum je anonymní. Kromě e-mailu, který můžete na konci dobrovolně zadat pro zapojení do žrebování, ' +
+    'Výzkum je anonymní. Kromě e-mailu, který můžete na konci dobrovolně zadat pro zapojení do losování, ' +
     'nezpracovávám žádné vaše další osobní údaje.<br><br>' +
     'Vaše účast je zcela dobrovolná. Dotazník můžete kdykoli v jeho průběhu opustit bez udání důvodu.<br><br>' +
     'V případě jakýchkoli otázek se na mě můžete obrátit na e-mailu <a href="mailto:567844@mail.muni.cz">567844@mail.muni.cz</a>.',
@@ -195,10 +198,27 @@ const T = {
   played30Title: 'Hrál/a jste během posledních 30 dnů videohry?',
   hours7dTitle: 'Kolik hodin jste během posledních 7 dnů přibližně strávil/a hraním videoher?',
   hours7dSuffix: 'hodin',
-  lootbox12moTitle: 'Otevřel/a jste během posledních 12 měsíců alespoň jeden lootbox nebo jinou náhodnou herní odměnu, ať už placenou, nebo získanou hraním?',
+  lootbox12moTitle: 'Otevřel/a jste v TÉTO hře během posledních 12 měsíců alespoň jeden lootbox nebo jinou náhodnou herní odměnu, ať už placenou, nebo získanou hraním?',
   lootbox12moNote: 'Lootboxem se rozumí herní mechanismus, při kterém hráč předem neví, jakou konkrétní virtuální odměnu získá. Patří sem například bedny, truhly, náhodné balíčky, gacha tahy nebo balíčky hráčů.',
+  lootboxEverGeneralTitle: 'Otevřel/a jste za posledních 12 měsíců alespoň jeden lootbox v JAKÉKOLI hře, kterou hrajete?',
+  lootboxEverGeneralNote: 'Nemusí jít jen o hru, kterou jste uvedl/a výše — myslete na všechny hry, které hrajete. Lootboxem se rozumí herní mechanismus, při kterém hráč předem neví, jakou konkrétní virtuální odměnu získá — např. bedny, truhly, náhodné balíčky, gacha tahy nebo balíčky hráčů.',
 
-  instructionsTitle: 'Jak funguje tato část',
+  gameNameTitle: 'Uveďte prosím název hry, kterou jste za posledních 12 měsíců hráli nejčastěji.',
+  gameGenreTitle: 'Který typ videohry nejlépe vystihuje hru, které jste za posledních 12 měsíců věnovali nejvíce času?',
+  gameMonetizationTitle: 'Které z následujících tvrzení nejlépe popisuje finanční model této hry?',
+  lootboxInputTitle: 'Dá se tento lootbox/balíček/truhla v této hře získat nebo otevřít i za skutečné peníze?',
+  lootboxInputNote: 'Patří sem i nákup prémiové herní měny, např. drahokamů nebo herních mincí, které jste si zakoupili za skutečné peníze.',
+  lootboxOutputTitle: 'Dají se předměty získané z lootboxů v této hře prodat jiným hráčům nebo zpeněžit za skutečné peníze?',
+  lootboxOutputNote: 'Např. přes tržiště Steam, aukční dům ve hře nebo externí internetové stránky.',
+  lootboxTypeTitle: 'Jaké odměny poskytují lootboxy v této hře?',
+  gameDurationTitle: 'Jak dlouho tuto hru hrajete?',
+  gameDurationSuffix: 'měsíců',
+  yearsPlayingTitle: 'Kolik let celkem hrajete videohry?',
+  yearsPlayingSuffix: 'let',
+  relationshipStatusTitle: 'Jaký je váš aktuální vztahový status?',
+  backBtn: 'Zpět',
+
+  instructionsTitle: 'Jak funguje následující část',
   instructionsBody:
     'Na následujících obrazovkách si vždy vyberete mezi dvěma částkami peněz — jednou, kterou byste ' +
     'dostali hned, a druhou, větší, kterou byste dostali až po určité době. Představte si, že jde ' +
@@ -209,19 +229,21 @@ const T = {
   soonerSuffix: 'hned',
   laterPrefix: 'za',
 
-  rlbiTitle: 'Herní návyky',
+  rlbiTitle: 'Zkušenosti s lootboxy',
   rlbiNote: 'Následující tvrzení se týkají vašich zkušeností s lootboxy. U každého tvrzení klikněte na ' +
     'bod na škále, který nejlépe vyjadřuje, do jaké míry s ním souhlasíte — od "rozhodně nesouhlasím" ' +
     'po "rozhodně souhlasím". Odpovězte prosím na všechna tvrzení.',
-  aeq1Title: 'Hraní online her (1/2)',
-  aeq1Note: 'Následující tvrzení se týkají vašeho hraní online her obecně (nejen lootboxů). U každého ' +
+  aeq1Title: 'Hraní videoher (1/2)',
+  aeq1Note: 'Následující tvrzení se týkají vašeho hraní her obecně (nejen lootboxů). U každého ' +
     'tvrzení klikněte na bod na škále, který nejlépe vyjadřuje, do jaké míry s ním souhlasíte. ' +
     'Odpovězte prosím na všechna tvrzení.',
-  aeq2Title: 'Hraní online her (2/2)',
-  aeq2Note: 'Ještě několik posledních tvrzení ke hraní online her. Odpovězte prosím na všechna tvrzení.',
+  aeq2Title: 'Hraní videoher (2/2)',
+  aeq2Note: 'Ještě několik posledních tvrzení ke hraní her. Odpovězte prosím na všechna tvrzení.',
 
-  lbSpendTitle: 'Kolik peněz jste během posledních 30 dnů celkem utratil/a za lootboxy nebo jiné náhodné herní odměny?',
-  lbSpendNote: 'Zahrňte také placenou herní měnu, kterou jste použil/a k otevření lootboxů. Pokud jste nic neutratil/a, uveďte 0.',
+  lbSpendTitle: 'Kolik peněz jste během posledních 30 dnů celkem utratil/a za lootboxy — napříč VŠEMI hrami, které hrajete?',
+  lbSpendNote: 'Lootboxem se rozumí jakákoli placená herní mechanika s náhodným obsahem — např. loot crates, gacha tahy, mystery/blind boxy nebo balíčky karet (packs). Zahrňte také placenou herní měnu, kterou jste použil/a k jejich otevření. Pokud jste nic neutratil/a, uveďte 0.',
+  lbSpendThisGameTitle: 'Kolik peněz jste během posledních 30 dnů utratil/a za lootboxy v TÉTO hře?',
+  lbSpendThisGameNote: 'Myslete konkrétně na hru, kterou jste uvedl/a výše. Lootboxem se rozumí jakákoli placená herní mechanika s náhodným obsahem — např. loot crates, gacha tahy, mystery/blind boxy nebo balíčky karet (packs). Zahrňte také placenou herní měnu, kterou jste použil/a k jejich otevření. Pokud jste nic neutratil/a, uveďte 0.',
   incomeTitle: 'Kolik peněz jste měl/a během posledních 30 dnů přibližně k dispozici na vlastní volitelné výdaje po zaplacení nezbytných výdajů?',
   incomeNote: 'Zahrňte peníze, které jste mohl/a podle vlastního uvážení použít například na zábavu, hry, koníčky nebo nákupy. Pokud nemáte pravidelný příjem, zahrňte také kapesné nebo jiné peníze, které jste měl/a k dispozici.',
 
@@ -231,42 +253,33 @@ const T = {
   countryTitle: 'Ve které zemi v současnosti žijete?',
   countryOtherTitle: 'Uveďte prosím zemi',
   platformTitle: 'Na jaké platformě nejčastěji hrajete?',
-  gamePlayedTitle: 'Kterou hru v současnosti hrajete nejčastěji?',
-  gamePlayedOtherTitle: 'Uveďte prosím název hry',
 
   thanksTitle: 'Děkujeme za vyplnění',
-  thanksBody: 'Vaše odpovědi byly zaznamenány. Níže je váš kód účastníka — uložte si ho, může se hodit, ' +
-    'pokud bude výzkum pokračovat dalšími dotazníky.',
-  pidLabel: 'Kód účastníka',
-  copyBtn: 'Kopírovat',
-  copiedBtn: 'Zkopírováno',
+  thanksBody: 'Vaše odpovědi byly zaznamenány.',
   backupBtn: 'Stáhnout záznam odpovědí (JSON)',
   sentOk: 'Data byla odeslána.',
   sentError: 'Data se nepodařilo automaticky odeslat. Stáhněte si prosím zálohu níže a uschovejte ji.',
   notConfigured: 'Ukládání dat ještě není nastaveno (chybí GOOGLE_SCRIPT_URL). Data si zatím stáhněte ručně.',
 
-  raffleTitle: 'Žrebování o Steam poukázku',
-  raffleBody: 'Chcete se zapojit do žrebování o 5× herní poukázku Steam v hodnotě 10 €? Stačí zadat e-mail níže. ' +
+  raffleTitle: 'Losování o Steam poukázku',
+  raffleBody: 'Chcete se zapojit do losování o 5× herní poukázku Steam v hodnotě 10 €? Stačí zadat e-mail níže. ' +
     'Tento e-mail je osobní údaj, proto ho zpracovávám odděleně od vašich odpovědí na dotazník a nijak ho s nimi nepropojím. ' +
-    'Uchovám ho do ukončení sběru dat, poté proběhne žrebování a e-mail smažu; v případě výhry vás budu kontaktovat. ' +
+    'Uchovám ho do ukončení sběru dat, poté proběhne losování a e-mail smažu; v případě výhry vás budu kontaktovat. ' +
     'Máte právo požadovat přístup k němu, jeho opravu nebo výmaz, a právo kdykoli odvolat souhlas s jeho zpracováním ' +
     '(napsáním na ' + CONFIG.CONTACT_EMAIL + '). Správcem tohoto osobního údaje je Oliver Chrkavý, Fakulta sociálních studií ' +
     'Masarykovy univerzity, ' + CONFIG.CONTACT_EMAIL + '. Odesláním e-mailu níže s tímto zpracováním souhlasíte.',
   raffleEmailPlaceholder: 'vas@email.cz',
-  raffleConsentLabel: 'Souhlasím se zpracováním mého e-mailu pro účast v žrebování.',
+  raffleConsentLabel: 'Souhlasím se zpracováním mého e-mailu pro účast v losování.',
   raffleSendBtn: 'Odeslat e-mail',
   raffleSentMsg: 'Děkujeme, e-mail byl zaznamenán.',
   raffleErrorMsg: 'E-mail se nepodařilo odeslat. Zkuste to prosím znovu, případně později.',
-  raffleNotConfiguredMsg: 'Zápis do žrebování zatím není technicky nastaven (chybí GOOGLE_SCRIPT_URL).',
-  raffleThanksTitle: 'Byli jste zapojeni do žrebování',
+  raffleNotConfiguredMsg: 'Zápis do losování zatím není technicky nastaven (chybí GOOGLE_SCRIPT_URL).',
+  raffleThanksTitle: 'Byli jste zapojeni do losování',
   raffleThanksBody: 'Děkujeme, váš e-mail byl zaznamenán. V případě výhry vás budeme kontaktovat. ' +
     'Ještě jednou děkujeme za účast ve výzkumu! S případnými dotazy se prosím obraťte na ' +
     '<a href="mailto:' + CONFIG.CONTACT_EMAIL + '">' + CONFIG.CONTACT_EMAIL + '</a>.',
 };
 
-/* ============================================================
-   6-TRIAL ADJUSTING DELAY TASK — Koffarnus, Rzeszutek & Kaplan (2021), Table 3.
-   ============================================================ */
 const LABELS = {1:'5 sekund',2:'5 sekund',3:'7 sekund',4:'10 sekund',5:'15 sekund',6:'20 sekund',7:'25 sekund',
   8:'30 sekund',9:'45 sekund',10:'1 minutu',11:'1,5 minuty',12:'2 minuty',13:'3 minuty',14:'4 minuty',
   15:'6 minut',16:'9 minut',17:'12 minut',18:'17 minut',19:'23 minut',20:'30 minut',21:'45 minut',
@@ -296,10 +309,6 @@ const ODD_K = {
   61:{imm:0.0000702706,del:0.0000500696}, 63:{imm:0.0000421208,del:null},
 };
 
-/* ============================================================
-   RLBI — Risky Loot Box Index (5 položiek, škála 1-5, bez obrátených
-   položiek, všetky rovnakým smerom, jednoduchý súčet).
-   ============================================================ */
 const RLBI_ITEMS = [
   {key:'rlbi_1', text:'Vzrušení, které zažívám při otevírání lootboxů, mě přimělo si jich koupit více.'},
   {key:'rlbi_2', text:'Abych získal/a lootboxy, často hraji déle, než jsem chtěl/a.'},
@@ -312,49 +321,37 @@ const RLBI_SCALE = [
   {v:4,label:'Souhlasím'},{v:5,label:'Rozhodně souhlasím'},
 ];
 
-/* ============================================================
-   AEQ — Addiction-Engagement Questionnaire (Charlton & Danforth;
-   česká adaptácia Blinka a kol.)
-
-   Surové dáta (aeq_1..aeq_23) sa ukladajú presne tak, ako ich respondent
-   zvolil na 4-bodovej škále nižšie, žiadne prepočítavanie na subskóre
-   sa automaticky nerobí. Pole 'coding' pri každej položke je len
-   informatívna poznámka (priame/obrátené), v kóde sa nepoužíva.
-   ============================================================ */
 const AEQ_ITEMS_1 = [
-  {key:'aeq_1',  coding:'reversed', text:'Někdy zanedbávám důležité věci kvůli hraní online her.'},
-  {key:'aeq_2',  coding:'reversed', text:'Můj společenský život občas trpí kvůli hraní online her.'},
-  {key:'aeq_3',  coding:'reversed', text:'Hraní online her mi někdy narušuje pracovní povinnosti.'},
+  {key:'aeq_1',  coding:'reversed', text:'Někdy zanedbávám důležité věci kvůli hraní her.'},
+  {key:'aeq_2',  coding:'reversed', text:'Můj společenský život občas trpí kvůli hraní her.'},
+  {key:'aeq_3',  coding:'reversed', text:'Hraní her mi někdy narušuje pracovní povinnosti.'},
   {key:'aeq_4',  coding:'reversed', text:'Když nehraji, často se cítím nesvůj/nesvá.'},
   {key:'aeq_5',  coding:'reversed', text:'Neúspěšně jsem se pokoušel/a omezit čas strávený hraním.'},
-  {key:'aeq_6',  coding:'reversed', text:'Občas se opozdím s plněním povinností, protože hraji online hry.'},
+  {key:'aeq_6',  coding:'reversed', text:'Občas se opozdím s plněním povinností, protože hraji hry.'},
   {key:'aeq_7',  coding:'reversed', text:'Doma občas dochází k hádkám kvůli času, který strávím hraním.'},
-  {key:'aeq_8',  coding:'reversed', text:'Myslím, že jsem na hraní online her závislý/á.'},
+  {key:'aeq_8',  coding:'reversed', text:'Myslím, že jsem na hraní her závislý/á.'},
   {key:'aeq_9',  coding:'reversed', text:'Často se kvůli hraní dostatečně nevyspím.'},
-  {key:'aeq_10', coding:'reversed', text:'Občas se kvůli hraní online her pořádně nenajím.'},
+  {key:'aeq_10', coding:'reversed', text:'Občas se kvůli hraní her pořádně nenajím.'},
   {key:'aeq_11', coding:'reversed', text:'Někdy jdu hrát, abych se vyhnul/a společnosti druhých.'},
-  {key:'aeq_12', coding:'reversed', text:'Často mám pocit, že za hraní online her utrácím více peněz, než si mohu dovolit.'},
+  {key:'aeq_12', coding:'reversed', text:'Často mám pocit, že za hraní her utrácím více peněz, než si mohu dovolit.'},
 ];
 const AEQ_ITEMS_2 = [
-  {key:'aeq_13', coding:'reversed', text:'Vadilo by mi, kdybych už nikdy online hry nehrál/a.'},
+  {key:'aeq_13', coding:'reversed', text:'Vadilo by mi, kdybych už nikdy hry nehrál/a.'},
   {key:'aeq_14', coding:'reversed', text:'Při pomyšlení na hru se cítím šťastný/á.'},
-  {key:'aeq_15', coding:'direct',   text:'Čím méně mám s hraním online her společného, tím lépe.'},
-  {key:'aeq_16', coding:'direct',   text:'Online hry nejsou pro můj život zvlášť podstatné.'},
+  {key:'aeq_15', coding:'direct',   text:'Čím méně mám s hraním her společného, tím lépe.'},
+  {key:'aeq_16', coding:'direct',   text:'Hry nejsou pro můj život zvlášť podstatné.'},
   {key:'aeq_17', coding:'reversed', text:'Nesnesl/a bych být bez hraní déle než několik dní.'},
-  {key:'aeq_18', coding:'direct',   text:'Když lidé mluví o online hrách, málokdy tomu věnuji pozornost.'},
+  {key:'aeq_18', coding:'direct',   text:'Když lidé mluví o hrách, málokdy tomu věnuji pozornost.'},
   {key:'aeq_19', coding:'reversed', text:'Je pro mě důležité, abych byl/a ve hře, kterou hraji, dobrý/á.'},
-  {key:'aeq_20', coding:'reversed', text:'Hraní online her je podle mě vzrušující nebo napínavé.'},
-  {key:'aeq_21', coding:'reversed', text:'Mám rád/a výzvu, kterou představuje naučit se online hry hrát.'},
-  {key:'aeq_22', coding:'direct',   text:'Hantýrka neboli slang spojený s hraním online her mi zní hloupě.'},
-  {key:'aeq_23', coding:'direct',   text:'Nedokážu pochopit, proč mají lidé online hry rádi.'},
+  {key:'aeq_20', coding:'reversed', text:'Hraní her je podle mě vzrušující nebo napínavé.'},
+  {key:'aeq_21', coding:'reversed', text:'Mám rád/a výzvu, kterou představuje naučit se hry hrát.'},
+  {key:'aeq_22', coding:'direct',   text:'Hantýrka neboli slang spojený s hraním her mi zní hloupě.'},
+  {key:'aeq_23', coding:'direct',   text:'Nedokážu pochopit, proč mají lidé hry rádi.'},
 ];
 const AEQ_SCALE = [
-  {v:1,label:'Rozhodně souhlasím'},{v:2,label:'Souhlasím'},{v:3,label:'Nesouhlasím'},{v:4,label:'Rozhodně nesouhlasím'},
+  {v:1,label:'Rozhodně nesouhlasím'},{v:2,label:'Nesouhlasím'},{v:3,label:'Souhlasím'},{v:4,label:'Rozhodně souhlasím'},
 ];
 
-/* ============================================================
-   DEMOGRAFIA — vzdelanie, zamestnanie
-   ============================================================ */
 const EDUCATION_OPTIONS = [
   {value:'zakladni', label:'Základní'},
   {value:'stredni_bez_maturity', label:'Střední bez maturity (vyučen/a)'},
@@ -368,54 +365,89 @@ const EDUCATION_OPTIONS = [
 const EMPLOYMENT_OPTIONS = [
   {value:'student', label:'Student/ka'},
   {value:'zamestnany', label:'Zaměstnaný/á'},
-  {value:'osvc', label:'OSVČ'},
   {value:'nezamestnany', label:'Nezaměstnaný/á'},
-  {value:'rodicovska_duchod', label:'Rodičovská dovolená / důchod'},
   {value:'jine', label:'Jiné'},
 ];
 
-/* ============================================================
-   NAJHRANEJŠIE HRY
-   ============================================================ */
-const GAME_OPTIONS = [
-  {value:'fortnite', label:'Fortnite'},
-  {value:'minecraft', label:'Minecraft'},
-  {value:'league_of_legends', label:'League of Legends'},
-  {value:'cs2', label:'Counter-Strike 2'},
-  {value:'valorant', label:'Valorant'},
-  {value:'gta', label:'Grand Theft Auto V / GTA Online'},
-  {value:'cod', label:'Call of Duty (Warzone / Modern Warfare)'},
-  {value:'ea_fc', label:'EA Sports FC (FIFA)'},
-  {value:'roblox', label:'Roblox'},
-  {value:'apex', label:'Apex Legends'},
-  {value:'overwatch', label:'Overwatch 2'},
-  {value:'dota2', label:'Dota 2'},
-  {value:'rocket_league', label:'Rocket League'},
-  {value:'pubg', label:'PUBG: Battlegrounds'},
-  {value:'wow', label:'World of Warcraft'},
-  {value:'genshin', label:'Genshin Impact'},
-  {value:'honkai_star_rail', label:'Honkai: Star Rail'},
-  {value:'brawl_stars', label:'Brawl Stars'},
-  {value:'clash', label:'Clash Royale / Clash of Clans'},
-  {value:'sims4', label:'The Sims 4'},
-  {value:'other', label:'Jiná hra'},
+const GAME_GENRE_OPTIONS = [
+  {value:'competitive', label:'Kompetitivní (soutěživé) hry',
+   sub:'Hry, ve kterých je hlavní náplní soupeření s ostatními hráči v zápasech a záleží na výsledku, skóre nebo pořadí.',
+   examples:'Counter-Strike, Fortnite, League of Legends, Valorant.'},
+  {value:'story', label:'Příběhové hry pro jednoho hráče',
+   sub:'Hry zaměřené především na postup příběhem a herním světem, typicky v režimu pro jednoho hráče.',
+   examples:'The Witcher 3, Elden Ring, Baldur’s Gate 3, Cyberpunk 2077.'},
+  {value:'simstrat', label:'Strategické a budovatelské hry',
+   sub:'Hry zaměřené především na plánování, budování, správu zdrojů nebo dlouhodobá rozhodnutí.',
+   examples:'Minecraft, The Sims, Stardew Valley, Civilization.'},
+  {value:'mmoe', label:'MMO a kooperativní online světy',
+   sub:'Hry, jejichž hlavní náplní je dlouhodobé hraní s dalšími hráči v online světě.',
+   examples:'World of Warcraft, Genshin Impact, Rust, GTA Online.'},
+  {value:'casual', label:'Nenáročné (casual) hry',
+   sub:'Hry zaměřené především na krátké, jednoduché herní seance a snadno pochopitelnou hratelnost.',
+   examples:'Candy Crush Saga, Subway Surfers, Angry Birds.'},
+  {value:'other', label:'Jiná kategorie / Nevím zařadit',
+   sub:'Hra, která podle vás nespadá do žádné z výše uvedených kategorií.'},
 ];
 
-/* ============================================================
-   STAV APLIKÁCIE
-   ============================================================ */
+const GAME_MONETIZATION_OPTIONS = [
+  {value:'f2p', label:'Hra je zdarma (Free-to-Play)',
+   sub:'Za stažení a hraní samotné hry se neplatí. Hra ale může nabízet placené herní předměty, herní měnu, postavy nebo kosmetické doplňky.',
+   examples:'Fortnite, Counter-Strike, League of Legends, Genshin Impact.'},
+  {value:'p2p_micro', label:'Za hru se platí a obsahuje další placené nákupy',
+   sub:'Hru je potřeba nejprve koupit. Ve hře pak můžete za skutečné peníze dokupovat další obsah, například herní měnu, kosmetické předměty nebo náhodné balíčky.',
+   examples:'EA Sports FC, NBA 2K, GTA V / GTA Online.'},
+  {value:'p2p_pure', label:'Za hru se platí jednorázově a neobsahuje další placené nákupy',
+   sub:'Hru si koupíte a po zakoupení neobsahuje další mikrotransakce ani placené náhodné balíčky.',
+   examples:'The Witcher 3, Elden Ring, Baldur’s Gate 3.'},
+];
+
+const LOOTBOX_INPUT_OPTIONS = [
+  {value:'yes', label:'Ano',
+   sub:'Lootbox lze ve hře zakoupit za peníze, nebo je k jeho otevření zapotřebí placený klíč.'},
+  {value:'no', label:'Ne',
+   sub:'Lootbox lze získat a otevřít výhradně samotným hraním nebo plněním úkolů, nelze za něj nijak zaplatit.'},
+  {value:'dontknow', label:'Nevím'},
+];
+const LOOTBOX_OUTPUT_OPTIONS = [
+  {value:'yes', label:'Ano', sub:'Získané předměty mají reálnou tržní hodnotu a lze je prodat nebo jinak zpeněžit za skutečné peníze.'},
+  {value:'no', label:'Ne', sub:'Předměty jsou spojené s herním účtem a nelze je prodat ani vyměnit za skutečné peníze.'},
+  {value:'dontknow', label:'Nevím'},
+];
+const LOOTBOX_TYPE_OPTIONS = [
+  {value:'cosmetic', label:'Pouze kosmetické změny', sub:'Např. skiny, oblečení, vizuální efekty nebo jiné předměty, které nemění herní výkon.'},
+  {value:'advantage', label:'Pouze funkční výhody', sub:'Např. lepší statistiky, silnější postavy, lepší vybavení nebo rychlejší postup ve hře.'},
+  {value:'both', label:'Kosmetické i funkční výhody zároveň', sub:'Lootboxy mohou poskytovat jak kosmetické předměty, tak odměny, které ovlivňují herní výkon nebo postup.'},
+  {value:'dontknow', label:'Nevím'},
+];
+
+const RELATIONSHIP_STATUS_OPTIONS = [
+  {value:'together_living', label:'Ve vztahu a bydlíme spolu'},
+  {value:'together_apart', label:'Ve vztahu a nebydlíme spolu'},
+  {value:'dating', label:'Randím'},
+  {value:'single', label:'Nezadaný/á'},
+  {value:'jine', label:'Jiné'},
+  {value:'skip', label:'Nechci uvést'},
+];
+
+function getTrafficSource() {
+  try {
+    const src = new URLSearchParams(window.location.search).get('src');
+    return src ? src.trim().slice(0, 40) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 const state = {
-  currency: 'czk',        // 'czk' | 'eur' — nezávisle od jazyka (jazyk je len čeština)
+  currency: 'czk',
   screen: 'intro',
-  // diskontovacia úloha:
   trial: 0, index: 32, step: 16, choices: [], trialLog: [], trialStartTs: null,
   attentionType: null,
-  // ostatné odpovede (plochý objekt, kľúč = názov položky):
   answers: {},
-  // pomocné časové značky pre page-level RT (speeder check):
   pageStartTs: {},
   participantId: 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
   studyStartIso: new Date().toISOString(),
+  trafficSource: getTrafficSource(),
   sendStatus: null,
   lastPayload: null,
 };
@@ -429,17 +461,14 @@ function formatAmount(eur) {
 }
 function currencySuffix() { return state.currency === 'czk' ? 'Kč' : '€'; }
 
-/* ============================================================
-   CELKOVÝ PROGRESS (footer dole na obrazovke) — počíta sa cez
-   celý dotazník, 'trial' (DDT úloha) sa počíta ako 6 samostatných
-   krokov podľa state.trial. Obrazovky mimo tohto zoznamu (intro,
-   instructions, ineligible_*, thanks) progress nezobrazujú.
-   'country_other' sa počíta ako alias 'country'.
-   ============================================================ */
 const PROGRESS_FLOW = [
-  'age', 'played30', 'hours7d', 'game_played', 'lootbox12mo', 'trial',
-  'rlbi', 'aeq1', 'aeq2', 'lbspend', 'income',
-  'gender', 'education', 'employment', 'country', 'platform',
+  'age', 'played30', 'hours7d',
+  'game_genre', 'game_name', 'game_duration', 'game_monetization',
+  'lootbox12mo', 'lootbox_input', 'lootbox_output', 'lootbox_type', 'lb_spend_this_game',
+  'trial',
+  'rlbi', 'aeq1', 'aeq2', 'lootbox_ever_general', 'lbspend', 'income',
+  'platform', 'years_playing', 'gender', 'education', 'employment',
+  'relationship_status', 'country',
 ];
 const PROGRESS_TRIAL_STEPS = 6;
 
@@ -469,12 +498,18 @@ function renderProgressFooter() {
   '</div>';
 }
 
-/* ============================================================
-   VŠEOBECNÉ RENDER POMÔCKY
-   ============================================================ */
+function renderBackLink(backScreen) {
+  return backScreen ? '<button class="back-link-top" id="backLinkBtn">&larr; ' + T.backBtn + '</button>' : '';
+}
+function wireBackLink(backScreen, customHandler) {
+  const btn = document.getElementById('backLinkBtn');
+  if (!btn) return;
+  btn.addEventListener('click', customHandler || (() => { state.screen = backScreen; render(); }));
+}
+
 function renderCurrencyToggle() {
   const el = document.getElementById('langToggle');
-  const showOnScreens = ['trial', 'lbspend', 'income'];
+  const showOnScreens = ['trial', 'lb_spend_this_game', 'lbspend', 'income'];
   if (!showOnScreens.includes(state.screen)) {
     el.innerHTML = '';
     return;
@@ -490,6 +525,7 @@ function renderCurrencyToggle() {
 
 function renderNumericScreen(app, opts) {
   app.innerHTML =
+    renderBackLink(opts.backScreen) +
     '<h1>' + opts.title + '</h1>' +
     (opts.note ? '<p class="muted">' + opts.note + '</p>' : '') +
     '<div class="numeric-row">' +
@@ -500,6 +536,7 @@ function renderNumericScreen(app, opts) {
     renderProgressFooter();
   const input = document.getElementById('numInput');
   const btn = document.getElementById('numContinue');
+  wireBackLink(opts.backScreen);
   const submit = () => {
     const val = parseFloat((input.value || '').replace(',', '.'));
     const min = opts.min != null ? opts.min : -Infinity;
@@ -517,12 +554,16 @@ function renderNumericScreen(app, opts) {
 
 function renderSingleChoiceScreen(app, opts) {
   app.innerHTML =
+    renderBackLink(opts.backScreen) +
     '<h1>' + opts.title + '</h1>' +
     (opts.note ? '<p class="muted">' + opts.note + '</p>' : '') +
     '<div class="choices">' +
-      opts.options.map(o => '<button class="choice-btn" data-value="' + o.value + '">' + o.label + '</button>').join('') +
+      opts.options.map(o => '<button class="choice-btn" data-value="' + o.value + '">' + o.label +
+        (o.sub ? '<span class="sub">' + o.sub +
+          (o.examples ? ' <em>Příklady: ' + o.examples + '</em>' : '') + '</span>' : '') + '</button>').join('') +
     '</div>' +
     renderProgressFooter();
+  wireBackLink(opts.backScreen);
   app.querySelectorAll('.choice-btn').forEach(b => {
     b.addEventListener('click', () => opts.onSelect(b.dataset.value));
   });
@@ -530,6 +571,7 @@ function renderSingleChoiceScreen(app, opts) {
 
 function renderTextScreen(app, opts) {
   app.innerHTML =
+    renderBackLink(opts.backScreen) +
     '<h1>' + opts.title + '</h1>' +
     (opts.note ? '<p class="muted">' + opts.note + '</p>' : '') +
     '<input type="text" class="text-input" id="txtInput" placeholder="' + (opts.placeholder || '') + '">' +
@@ -537,6 +579,7 @@ function renderTextScreen(app, opts) {
     renderProgressFooter();
   const input = document.getElementById('txtInput');
   const btn = document.getElementById('txtContinue');
+  wireBackLink(opts.backScreen);
   btn.addEventListener('click', () => opts.onSubmit((input.value || '').trim()));
   input.addEventListener('keydown', e => { if (e.key === 'Enter') opts.onSubmit((input.value || '').trim()); });
 }
@@ -551,14 +594,18 @@ function renderLikertScreen(app, opts) {
       '<div class="likert-scale-row">' +
         '<span class="likert-endpoint left">' + leftLabel + '</span>' +
         '<div class="likert-dots">' +
-          opts.scale.map(s => '<button class="likert-dot" data-key="' + item.key + '" data-v="' + s.v + '" ' +
-            'aria-label="' + s.label + '"></button>').join('') +
+          opts.scale.map(s => {
+            const selected = state.answers[item.key] === s.v ? ' selected' : '';
+            return '<button class="likert-dot' + selected + '" data-key="' + item.key + '" data-v="' + s.v + '" ' +
+              'aria-label="' + s.label + '"></button>';
+          }).join('') +
         '</div>' +
         '<span class="likert-endpoint right">' + rightLabel + '</span>' +
       '</div>' +
     '</div>'
   ).join('');
   app.innerHTML =
+    renderBackLink(opts.prevScreen) +
     '<h1>' + opts.title + '</h1>' +
     (opts.note ? '<p class="muted">' + opts.note + '</p>' : '') +
     rows +
@@ -566,17 +613,20 @@ function renderLikertScreen(app, opts) {
     '<div class="likert-progress" id="likertProgress"></div>' +
     renderProgressFooter();
 
-  const answers = {};
+  const answers = { ...state.answers };
   const btn = document.getElementById('likertContinue');
+  wireBackLink(opts.prevScreen);
   const progressEl = document.getElementById('likertProgress');
   const updateProgress = () => {
-    progressEl.textContent = 'Zodpovězeno: ' + Object.keys(answers).length + ' / ' + opts.items.length;
+    const answeredCount = opts.items.filter(item => state.answers[item.key] !== undefined).length;
+    progressEl.textContent = 'Zodpovězeno: ' + answeredCount + ' / ' + opts.items.length;
   };
   updateProgress();
 
   app.querySelectorAll('.likert-dot').forEach(b => {
     b.addEventListener('click', () => {
       const key = b.dataset.key, v = parseInt(b.dataset.v, 10);
+      state.answers[key] = v;
       answers[key] = v;
       app.querySelectorAll('.likert-dot[data-key="' + key + '"]').forEach(x => x.classList.remove('selected'));
       b.classList.add('selected');
@@ -587,7 +637,7 @@ function renderLikertScreen(app, opts) {
   });
 
   btn.addEventListener('click', () => {
-    const missingItem = opts.items.find(item => answers[item.key] === undefined);
+    const missingItem = opts.items.find(item => state.answers[item.key] === undefined);
     if (missingItem) {
       app.querySelectorAll('.likert-row').forEach(r => r.classList.remove('missing'));
       const row = app.querySelector('.likert-row[data-row-key="' + missingItem.key + '"]');
@@ -600,13 +650,10 @@ function renderLikertScreen(app, opts) {
       return;
     }
     const durationMs = Math.round(performance.now() - state.pageStartTs[opts.pageKey]);
-    opts.onSubmit(answers, durationMs);
+    opts.onSubmit({ ...state.answers }, durationMs);
   });
 }
 
-/* ============================================================
-   HLAVNÝ RENDER DISPATCHER
-   ============================================================ */
 function render() {
   renderCurrencyToggle();
   const app = document.getElementById('app');
@@ -617,14 +664,21 @@ function render() {
     age: renderAgeScreen,
     played30: renderPlayed30Screen,
     hours7d: renderHours7dScreen,
-    game_played: renderGamePlayedScreen,
-    game_played_other: renderGamePlayedOtherScreen,
+    game_genre: renderGameGenreScreen,
+    game_name: renderGameNameScreen,
+    game_monetization: renderGameMonetizationScreen,
     lootbox12mo: renderLootbox12moScreen,
+    lootbox_input: renderLootboxInputScreen,
+    lootbox_output: renderLootboxOutputScreen,
+    lootbox_type: renderLootboxTypeScreen,
+    lb_spend_this_game: renderLbSpendThisGameScreen,
     instructions: renderInstructions,
     trial: renderTrial,
     rlbi: renderRlbiScreen,
     aeq1: renderAeq1Screen,
     aeq2: renderAeq2Screen,
+    game_duration: renderGameDurationScreen,
+    lootbox_ever_general: renderLootboxEverGeneralScreen,
     lbspend: renderLbSpendScreen,
     income: renderIncomeScreen,
     gender: renderGenderScreen,
@@ -633,13 +687,14 @@ function render() {
     country: renderCountryScreen,
     country_other: renderCountryOtherScreen,
     platform: renderPlatformScreen,
+    years_playing: renderYearsPlayingScreen,
+    relationship_status: renderRelationshipStatusScreen,
     thanks: renderThanks,
   };
   (map[state.screen] || renderIntro)(app);
   window.scrollTo(0, 0);
 }
 
-/* ---------- intro / eligibilita ---------- */
 function renderIntro(app) {
   app.innerHTML =
     '<div class="logo-row"><img src="muni-logo.png" alt="Masarykova univerzita" ' +
@@ -668,7 +723,7 @@ function renderIneligibleNotPlayer(app) {
 
 function renderAgeScreen(app) {
   renderNumericScreen(app, {
-    title: T.ageTitle, suffix: T.ageSuffix, min: 5, max: 110,
+    title: T.ageTitle, suffix: T.ageSuffix, min: 5, max: 110, backScreen: 'intro',
     onSubmit: val => {
       state.answers.age = val;
       if (val < CONFIG.MIN_AGE) {
@@ -687,6 +742,7 @@ function renderPlayed30Screen(app) {
   renderSingleChoiceScreen(app, {
     title: T.played30Title,
     options: [{value:'yes', label:'Ano'}, {value:'no', label:'Ne'}],
+    backScreen: 'age',
     onSelect: val => {
       state.answers.played_last_30d = val;
       if (val === 'no') {
@@ -703,49 +759,112 @@ function renderPlayed30Screen(app) {
 
 function renderHours7dScreen(app) {
   renderNumericScreen(app, {
-    title: T.hours7dTitle, suffix: T.hours7dSuffix, min: 0, max: 168,
-    onSubmit: val => { state.answers.hours_last_7d = val; state.screen = 'game_played'; render(); },
+    title: T.hours7dTitle, suffix: T.hours7dSuffix, min: 0, max: 168, backScreen: 'played30',
+    onSubmit: val => { state.answers.hours_last_7d = val; state.screen = 'game_genre'; render(); },
   });
 }
 
-function renderGamePlayedScreen(app) {
+function renderGameGenreScreen(app) {
   renderSingleChoiceScreen(app, {
-    title: T.gamePlayedTitle,
-    options: GAME_OPTIONS,
-    onSelect: val => {
-      state.answers.game_played = val;
-      if (val === 'other') { state.screen = 'game_played_other'; render(); return; }
-      state.screen = 'lootbox12mo';
-      render();
-    },
+    title: T.gameGenreTitle,
+    options: GAME_GENRE_OPTIONS,
+    backScreen: 'hours7d',
+    onSelect: val => { state.answers.game_genre = val; state.screen = 'game_name'; render(); },
   });
 }
 
-function renderGamePlayedOtherScreen(app) {
+function renderGameNameScreen(app) {
   renderTextScreen(app, {
-    title: T.gamePlayedOtherTitle, placeholder: 'např. Stardew Valley',
-    onSubmit: val => { state.answers.game_played_other = val; state.screen = 'lootbox12mo'; render(); },
+    title: T.gameNameTitle, placeholder: 'např. Fortnite',
+    backScreen: 'game_genre',
+    onSubmit: val => { state.answers.game_name = val; state.screen = 'game_duration'; render(); },
+  });
+}
+
+function renderGameDurationScreen(app) {
+  renderNumericScreen(app, {
+    title: T.gameDurationTitle, suffix: T.gameDurationSuffix, min: 0, max: 240, backScreen: 'game_name',
+    onSubmit: val => { state.answers.game_duration_months = val; state.screen = 'game_monetization'; render(); },
+  });
+}
+
+function renderGameMonetizationScreen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.gameMonetizationTitle,
+    options: GAME_MONETIZATION_OPTIONS,
+    backScreen: 'game_duration',
+    onSelect: val => { state.answers.game_monetization = val; state.screen = 'lootbox12mo'; render(); },
   });
 }
 
 function renderLootbox12moScreen(app) {
   renderSingleChoiceScreen(app, {
     title: T.lootbox12moTitle, note: T.lootbox12moNote,
-    options: [{value:'yes', label:'Ano'}, {value:'no', label:'Ne'}, {value:'unsure', label:'Nejsem si jistý/á'}],
+    options: [{value:'yes', label:'Ano'}, {value:'no', label:'Ne'}],
+    backScreen: 'game_monetization',
     onSelect: val => {
       state.answers.lootbox_opened_12mo = val;
+      state.screen = 'lootbox_input';
+      render();
+    },
+  });
+}
+
+function renderLootboxInputScreen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.lootboxInputTitle, note: T.lootboxInputNote,
+    options: LOOTBOX_INPUT_OPTIONS,
+    backScreen: 'lootbox12mo',
+    onSelect: val => { state.answers.lootbox_input = val; state.screen = 'lootbox_output'; render(); },
+  });
+}
+
+function renderLootboxOutputScreen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.lootboxOutputTitle, note: T.lootboxOutputNote,
+    options: LOOTBOX_OUTPUT_OPTIONS,
+    backScreen: 'lootbox_input',
+    onSelect: val => { state.answers.lootbox_output = val; state.screen = 'lootbox_type'; render(); },
+  });
+}
+
+function renderLootboxTypeScreen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.lootboxTypeTitle,
+    options: LOOTBOX_TYPE_OPTIONS,
+    backScreen: 'lootbox_output',
+    onSelect: val => { state.answers.lootbox_type = val; state.screen = 'lb_spend_this_game'; render(); },
+  });
+}
+
+function renderLbSpendThisGameScreen(app) {
+  if (state.answers.lootbox_opened_12mo === 'no') {
+    state.answers.lb_spend_this_game_amount = 0;
+    state.answers.lb_spend_this_game_currency = state.currency;
+    state.screen = 'instructions';
+    render();
+    return;
+  }
+  renderNumericScreen(app, {
+    title: T.lbSpendThisGameTitle, note: T.lbSpendThisGameNote, suffix: currencySuffix(), min: 0,
+    backScreen: 'lootbox_type',
+    onSubmit: val => {
+      state.answers.lb_spend_this_game_amount = val;
+      state.answers.lb_spend_this_game_currency = state.currency;
       state.screen = 'instructions';
       render();
     },
   });
 }
 
-/* ---------- diskontovacia úloha (6 pokusov) ---------- */
 function renderInstructions(app) {
   app.innerHTML =
+    renderBackLink('lb_spend_this_game') +
     '<h1>' + T.instructionsTitle + '</h1>' +
     '<p>' + T.instructionsBody + '</p>' +
-    '<button class="btn-primary" id="startTask">' + T.startBtn + '</button>';
+    '<button class="btn-primary" id="startTask">' + T.startBtn + '</button>' +
+    renderProgressFooter();
+  wireBackLink('lb_spend_this_game');
   document.getElementById('startTask').addEventListener('click', () => {
     state.screen = 'trial';
     state.trial = 1;
@@ -854,7 +973,6 @@ function finishDiscountingTask({ attentionTriggered, attentionPassed, k }) {
   render();
 }
 
-/* ---------- RLBI / AEQ ---------- */
 function renderRlbiScreen(app) {
   renderLikertScreen(app, {
     title: T.rlbiTitle, note: T.rlbiNote + ' (celkem ' + RLBI_ITEMS.length + ' tvrzení)',
@@ -872,9 +990,9 @@ function renderRlbiScreen(app) {
 function renderAeq1Screen(app) {
   renderLikertScreen(app, {
     title: T.aeq1Title, note: T.aeq1Note + ' (celkem ' + AEQ_ITEMS_1.length + ' tvrzení)',
-    items: AEQ_ITEMS_1, scale: AEQ_SCALE, pageKey: 'aeq1',
+    items: AEQ_ITEMS_1, scale: AEQ_SCALE, pageKey: 'aeq1', prevScreen: 'rlbi',
     onSubmit: (answers, durationMs) => {
-      Object.assign(state.answers, answers); // surové položky, žiadne subskóre sa neprepočítava
+      Object.assign(state.answers, answers);
       state.answers.aeq1_duration_ms = durationMs;
       state.screen = 'aeq2';
       render();
@@ -885,19 +1003,31 @@ function renderAeq1Screen(app) {
 function renderAeq2Screen(app) {
   renderLikertScreen(app, {
     title: T.aeq2Title, note: T.aeq2Note + ' (celkem ' + AEQ_ITEMS_2.length + ' tvrzení)',
-    items: AEQ_ITEMS_2, scale: AEQ_SCALE, pageKey: 'aeq2',
+    items: AEQ_ITEMS_2, scale: AEQ_SCALE, pageKey: 'aeq2', prevScreen: 'aeq1',
     onSubmit: (answers, durationMs) => {
       Object.assign(state.answers, answers);
       state.answers.aeq2_duration_ms = durationMs;
+      state.screen = 'lootbox_ever_general';
+      render();
+    },
+  });
+}
+
+function renderLootboxEverGeneralScreen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.lootboxEverGeneralTitle, note: T.lootboxEverGeneralNote,
+    options: [{value:'yes', label:'Ano'}, {value:'no', label:'Ne'}],
+    backScreen: 'aeq2',
+    onSelect: val => {
+      state.answers.lootbox_opened_ever_general = val;
       state.screen = 'lbspend';
       render();
     },
   });
 }
 
-/* ---------- finančné otázky ---------- */
 function renderLbSpendScreen(app) {
-  if (state.answers.lootbox_opened_12mo === 'no') {
+  if (state.answers.lootbox_opened_ever_general === 'no') {
     state.answers.lb_spend_amount = 0;
     state.answers.lb_spend_currency = state.currency;
     state.screen = 'income';
@@ -905,7 +1035,7 @@ function renderLbSpendScreen(app) {
     return;
   }
   renderNumericScreen(app, {
-    title: T.lbSpendTitle, note: T.lbSpendNote, suffix: currencySuffix(), min: 0,
+    title: T.lbSpendTitle, note: T.lbSpendNote, suffix: currencySuffix(), min: 0, backScreen: 'lootbox_ever_general',
     onSubmit: val => {
       state.answers.lb_spend_amount = val;
       state.answers.lb_spend_currency = state.currency;
@@ -921,13 +1051,29 @@ function renderIncomeScreen(app) {
     onSubmit: val => {
       state.answers.disposable_income_amount = val;
       state.answers.disposable_income_currency = state.currency;
-      state.screen = 'gender';
+      state.screen = 'platform';
       render();
     },
   });
 }
 
-/* ---------- demografia (zvyšok) ---------- */
+function renderPlatformScreen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.platformTitle,
+    options: [
+      {value:'pc', label:'PC'}, {value:'konzole', label:'Konzole'}, {value:'mobil', label:'Mobil'},
+    ],
+    onSelect: val => { state.answers.platform = val; state.screen = 'years_playing'; render(); },
+  });
+}
+
+function renderYearsPlayingScreen(app) {
+  renderNumericScreen(app, {
+    title: T.yearsPlayingTitle, suffix: T.yearsPlayingSuffix, min: 0, max: 60, backScreen: 'platform',
+    onSubmit: val => { state.answers.years_playing_total = val; state.screen = 'gender'; render(); },
+  });
+}
+
 function renderGenderScreen(app) {
   renderSingleChoiceScreen(app, {
     title: T.genderTitle,
@@ -951,7 +1097,16 @@ function renderEmploymentScreen(app) {
   renderSingleChoiceScreen(app, {
     title: T.employmentTitle,
     options: EMPLOYMENT_OPTIONS,
-    onSelect: val => { state.answers.employment = val; state.screen = 'country'; render(); },
+    onSelect: val => { state.answers.employment = val; state.screen = 'relationship_status'; render(); },
+  });
+}
+
+function renderRelationshipStatusScreen(app) {
+  renderSingleChoiceScreen(app, {
+    title: T.relationshipStatusTitle,
+    options: RELATIONSHIP_STATUS_OPTIONS,
+    backScreen: 'employment',
+    onSelect: val => { state.answers.relationship_status = val; state.screen = 'country'; render(); },
   });
 }
 
@@ -964,8 +1119,7 @@ function renderCountryScreen(app) {
     onSelect: val => {
       state.answers.country = val;
       if (val === 'jina') { state.screen = 'country_other'; render(); return; }
-      state.screen = 'platform';
-      render();
+      finishSurvey();
     },
   });
 }
@@ -973,28 +1127,15 @@ function renderCountryScreen(app) {
 function renderCountryOtherScreen(app) {
   renderTextScreen(app, {
     title: T.countryOtherTitle, placeholder: 'např. Rakousko',
-    onSubmit: val => { state.answers.country_other = val; state.screen = 'platform'; render(); },
+    onSubmit: val => { state.answers.country_other = val; finishSurvey(); },
   });
 }
 
-function renderPlatformScreen(app) {
-  renderSingleChoiceScreen(app, {
-    title: T.platformTitle,
-    options: [
-      {value:'pc', label:'PC'}, {value:'konzole', label:'Konzole'}, {value:'mobil', label:'Mobil'},
-      {value:'kombinace', label:'Kombinace více platforem'}, {value:'skip', label:'Nechci uvést'},
-    ],
-    onSelect: val => { state.answers.platform = val; finishSurvey(); },
-  });
-}
-
-/* ============================================================
-   ODOSIELANIE DÁT
-   ============================================================ */
 function finishSurvey() {
   const payload = Object.assign(
     { record_type:'survey', participant_id: state.participantId, study_id: CONFIG.STUDY_ID,
       currency: state.currency, amount_eur: CONFIG.AMOUNT_EUR,
+      traffic_source: state.trafficSource,
       started_at: state.studyStartIso, finished_at: new Date().toISOString() },
     state.answers
   );
@@ -1006,7 +1147,8 @@ function finishSurvey() {
 
 function submitScreenedOut(reason, age) {
   postToScript({ record_type:'screened_out', study_id: CONFIG.STUDY_ID, reason,
-    age: age != null ? age : null, timestamp: new Date().toISOString() });
+    age: age != null ? age : null, traffic_source: state.trafficSource,
+    timestamp: new Date().toISOString() });
 }
 
 async function postToScript(payload) {
@@ -1028,12 +1170,14 @@ async function postToScript(payload) {
           study_id: payload.study_id,
           reason: payload.reason,
           age: payload.age != null ? Number(payload.age) : null,
+          traffic_source: payload.traffic_source || null,
         });
       }
       if (payload.record_type === 'raffle') {
         return await postToSupabase('raffle_entries', {
           study_id: payload.study_id,
           email: payload.email,
+          traffic_source: payload.traffic_source || null,
         });
       }
     }
@@ -1081,9 +1225,8 @@ async function postToSupabase(tableName, row) {
 }
 
 async function submitRaffleEmail(email) {
-  // ZÁMERNE bez participant_id — e-mail sa neprepája s odpoveďami.
   const status = await postToScript({ record_type:'raffle', study_id: CONFIG.STUDY_ID, email,
-    timestamp: new Date().toISOString() });
+    traffic_source: state.trafficSource, timestamp: new Date().toISOString() });
   if (status === 'sent') {
     const box = document.querySelector('.raffle-box');
     if (box) {
@@ -1113,8 +1256,6 @@ function renderThanks(app) {
   app.innerHTML =
     '<h1>' + T.thanksTitle + '</h1>' +
     '<p>' + T.thanksBody + '</p>' +
-    '<div class="pid-box"><span id="pidText">' + state.participantId + '</span>' +
-    '<button id="copyPid">' + T.copyBtn + '</button></div>' +
     '<div id="statusNote" class="status-note ok">…</div>' +
     '<button class="btn-secondary" id="backupBtn" style="display:none">' + T.backupBtn + '</button>' +
     '<div class="raffle-box">' +
@@ -1140,11 +1281,6 @@ function renderThanks(app) {
   raffleEmail.addEventListener('input', updateRaffleButtonState);
   raffleConsentBox.addEventListener('change', updateRaffleButtonState);
 
-  document.getElementById('copyPid').addEventListener('click', () => {
-    navigator.clipboard.writeText(state.participantId).then(() => {
-      document.getElementById('copyPid').textContent = T.copiedBtn;
-    });
-  });
   document.getElementById('backupBtn').addEventListener('click', () => {
     const blob = new Blob([JSON.stringify(state.lastPayload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
