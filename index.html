@@ -798,7 +798,24 @@ function renderGameMonetizationScreen(app) {
     title: T.gameMonetizationTitle,
     options: GAME_MONETIZATION_OPTIONS,
     backScreen: 'game_duration',
-    onSelect: val => { state.answers.game_monetization = val; state.screen = 'lootbox12mo'; render(); },
+    onSelect: val => {
+      state.answers.game_monetization = val;
+      if (val === 'p2p_pure') {
+        // Hra nemá žádné mikrotransakce, otázky na mechaniku lootboxů v TÉTO
+        // hře by nedávaly smysl (viz reálná zpětná vazba respondentů) — přeskočit
+        // rovnou na instrukce k DDT úloze, útratu v této hře nastavit na 0.
+        state.answers.lootbox_opened_12mo = 'na';
+        state.answers.lootbox_input = 'na';
+        state.answers.lootbox_output = 'na';
+        state.answers.lootbox_type = 'na';
+        state.answers.lb_spend_this_game_amount = 0;
+        state.answers.lb_spend_this_game_currency = state.currency;
+        state.screen = 'instructions';
+      } else {
+        state.screen = 'lootbox12mo';
+      }
+      render();
+    },
   });
 }
 
@@ -863,13 +880,14 @@ function renderLbSpendThisGameScreen(app) {
 }
 
 function renderInstructions(app) {
+  const backScreen = state.answers.game_monetization === 'p2p_pure' ? 'game_monetization' : 'lb_spend_this_game';
   app.innerHTML =
-    renderBackLink('lb_spend_this_game') +
+    renderBackLink(backScreen) +
     '<h1>' + T.instructionsTitle + '</h1>' +
     '<p>' + T.instructionsBody + '</p>' +
     '<button class="btn-primary" id="startTask">' + T.startBtn + '</button>' +
     renderProgressFooter();
-  wireBackLink('lb_spend_this_game');
+  wireBackLink(backScreen);
   document.getElementById('startTask').addEventListener('click', () => {
     state.screen = 'trial';
     state.trial = 1;
