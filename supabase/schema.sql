@@ -18,6 +18,7 @@ create table if not exists public.screened_out (
   study_id text,
   reason text not null,
   age integer,
+  traffic_source text,
   created_at timestamptz not null default now()
 );
 
@@ -25,8 +26,14 @@ create table if not exists public.raffle_entries (
   id uuid primary key default gen_random_uuid(),
   study_id text,
   email text not null,
+  traffic_source text,
   created_at timestamptz not null default now()
 );
+
+-- Ak tabuľky už existujú z predošlého nasadenia (create table if not exists
+-- ich nezmení), pridaj stĺpec dodatočne:
+alter table public.screened_out add column if not exists traffic_source text;
+alter table public.raffle_entries add column if not exists traffic_source text;
 
 -- 2) Indexes
 create index if not exists survey_responses_study_id_idx on public.survey_responses (study_id);
