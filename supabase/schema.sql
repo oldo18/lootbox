@@ -10,7 +10,8 @@ create table if not exists public.survey_responses (
   amount_eur numeric,
   created_at timestamptz not null default now(),
   submitted_at timestamptz not null default now(),
-  payload jsonb not null
+  payload jsonb not null,
+  traffic_source text generated always as (payload->>'traffic_source') stored
 );
 
 create table if not exists public.screened_out (
@@ -34,9 +35,11 @@ create table if not exists public.raffle_entries (
 -- ich nezmení), pridaj stĺpec dodatočne:
 alter table public.screened_out add column if not exists traffic_source text;
 alter table public.raffle_entries add column if not exists traffic_source text;
+alter table public.survey_responses add column if not exists traffic_source text generated always as (payload->>'traffic_source') stored;
 
 -- 2) Indexes
 create index if not exists survey_responses_study_id_idx on public.survey_responses (study_id);
+create index if not exists survey_responses_traffic_source_idx on public.survey_responses (traffic_source);
 create index if not exists surveyed_out_study_id_idx on public.screened_out (study_id);
 create index if not exists raffle_entries_study_id_idx on public.raffle_entries (study_id);
 
