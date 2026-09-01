@@ -29,15 +29,19 @@
     min-height: 100vh; display: flex; flex-direction: column;
     padding: 24px; -webkit-font-smoothing: antialiased;
   }
-  .lang-toggle {
-    position: fixed; top: 18px; right: 18px; display: flex; gap: 4px;
-    background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 3px;
+  .currency-picker {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    padding: 10px 14px; background: var(--accent-soft); border-radius: var(--radius);
+    border: 1.5px solid var(--accent);
   }
-  .lang-btn {
-    border: none; background: none; padding: 6px 12px; font-size: 13px; font-weight: 600;
-    color: var(--text-muted); border-radius: 6px; cursor: pointer; font-family: var(--font);
+  .currency-picker-label { font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .currency-picker-btns { display: flex; gap: 6px; }
+  .currency-picker-btn {
+    border: 1.5px solid var(--accent); background: #fff; color: var(--accent);
+    padding: 6px 14px; border-radius: 7px; font-size: 13px; font-weight: 700; cursor: pointer;
+    font-family: var(--font);
   }
-  .lang-btn.active { background: var(--accent); color: #fff; }
+  .currency-picker-btn.active { background: var(--accent); color: #fff; }
   .card {
     width: 100%; max-width: 600px; margin: auto; background: var(--card); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 44px 38px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -145,7 +149,6 @@
 </style>
 </head>
 <body>
-  <div class="lang-toggle" id="langToggle"></div>
   <div class="card" id="app"></div>
 
 <script>
@@ -507,18 +510,19 @@ function wireBackLink(backScreen, customHandler) {
   btn.addEventListener('click', customHandler || (() => { state.screen = backScreen; render(); }));
 }
 
-function renderCurrencyToggle() {
-  const el = document.getElementById('langToggle');
-  const showOnScreens = ['trial', 'lb_spend_this_game', 'lbspend', 'income'];
-  if (!showOnScreens.includes(state.screen)) {
-    el.innerHTML = '';
-    return;
-  }
-  el.innerHTML = ['czk', 'eur'].map(c =>
-    '<button class="lang-btn ' + (state.currency === c ? 'active' : '') + '" data-cur="' + c + '">' +
-      c.toUpperCase() + '</button>'
-  ).join('');
-  el.querySelectorAll('.lang-btn').forEach(b => {
+function renderCurrencyPicker() {
+  return '<div class="currency-picker">' +
+    '<span class="currency-picker-label">Měna:</span>' +
+    '<div class="currency-picker-btns">' +
+      ['czk', 'eur'].map(c =>
+        '<button type="button" class="currency-picker-btn' + (state.currency === c ? ' active' : '') + '" data-cur="' + c + '">' +
+          c.toUpperCase() + '</button>'
+      ).join('') +
+    '</div>' +
+  '</div>';
+}
+function wireCurrencyPicker() {
+  document.querySelectorAll('.currency-picker-btn').forEach(b => {
     b.addEventListener('click', () => { state.currency = b.dataset.cur; render(); });
   });
 }
@@ -528,6 +532,7 @@ function renderNumericScreen(app, opts) {
     renderBackLink(opts.backScreen) +
     '<h1>' + opts.title + '</h1>' +
     (opts.note ? '<p class="muted">' + opts.note + '</p>' : '') +
+    (opts.currency ? renderCurrencyPicker() : '') +
     '<div class="numeric-row">' +
       '<input type="number" id="numInput" inputmode="decimal" placeholder="0">' +
       (opts.suffix ? '<span class="numeric-suffix">' + opts.suffix + '</span>' : '') +
@@ -537,6 +542,7 @@ function renderNumericScreen(app, opts) {
   const input = document.getElementById('numInput');
   const btn = document.getElementById('numContinue');
   wireBackLink(opts.backScreen);
+  if (opts.currency) wireCurrencyPicker();
   const submit = () => {
     const val = parseFloat((input.value || '').replace(',', '.'));
     const min = opts.min != null ? opts.min : -Infinity;
@@ -655,7 +661,6 @@ function renderLikertScreen(app, opts) {
 }
 
 function render() {
-  renderCurrencyToggle();
   const app = document.getElementById('app');
   const map = {
     intro: renderIntro,
@@ -846,7 +851,7 @@ function renderLbSpendThisGameScreen(app) {
     return;
   }
   renderNumericScreen(app, {
-    title: T.lbSpendThisGameTitle, note: T.lbSpendThisGameNote, suffix: currencySuffix(), min: 0,
+    title: T.lbSpendThisGameTitle, note: T.lbSpendThisGameNote, suffix: currencySuffix(), min: 0, currency: true,
     backScreen: 'lootbox_type',
     onSubmit: val => {
       state.answers.lb_spend_this_game_amount = val;
@@ -905,9 +910,11 @@ function renderTrial(app) {
   app.innerHTML =
     '<div class="progress-label">' + T.questionLabel(state.trial) + '</div>' +
     '<div class="progress-bar"><div class="progress-bar-fill" style="width:' + (state.trial / 6 * 100) + '%"></div></div>' +
+    renderCurrencyPicker() +
     '<div class="choices">' + buttonHtml + '</div>' +
     renderProgressFooter();
 
+  wireCurrencyPicker();
   document.querySelectorAll('.choice-btn').forEach(b => {
     b.addEventListener('click', () => handleChoice(b.dataset.choice, content));
   });
@@ -1035,7 +1042,7 @@ function renderLbSpendScreen(app) {
     return;
   }
   renderNumericScreen(app, {
-    title: T.lbSpendTitle, note: T.lbSpendNote, suffix: currencySuffix(), min: 0, backScreen: 'lootbox_ever_general',
+    title: T.lbSpendTitle, note: T.lbSpendNote, suffix: currencySuffix(), min: 0, currency: true, backScreen: 'lootbox_ever_general',
     onSubmit: val => {
       state.answers.lb_spend_amount = val;
       state.answers.lb_spend_currency = state.currency;
@@ -1047,7 +1054,7 @@ function renderLbSpendScreen(app) {
 
 function renderIncomeScreen(app) {
   renderNumericScreen(app, {
-    title: T.incomeTitle, note: T.incomeNote, suffix: currencySuffix(), min: 0,
+    title: T.incomeTitle, note: T.incomeNote, suffix: currencySuffix(), min: 0, currency: true,
     onSubmit: val => {
       state.answers.disposable_income_amount = val;
       state.answers.disposable_income_currency = state.currency;
