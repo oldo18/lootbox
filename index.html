@@ -788,7 +788,7 @@ function renderGameNameScreen(app) {
 
 function renderGameDurationScreen(app) {
   renderNumericScreen(app, {
-    title: T.gameDurationTitle, suffix: T.gameDurationSuffix, min: 0, max: 240, backScreen: 'game_name',
+    title: T.gameDurationTitle, suffix: T.gameDurationSuffix, min: 0, backScreen: 'game_name',
     onSubmit: val => { state.answers.game_duration_months = val; state.screen = 'game_monetization'; render(); },
   });
 }
