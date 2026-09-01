@@ -149,9 +149,6 @@
   <div class="card" id="app"></div>
 
 <script>
-/* ============================================================
-   KONFIGURÁCIA
-   ============================================================ */
 const CONFIG = {
   AMOUNT_EUR: 1000,
   EUR_TO_CZK: 24.2,
@@ -166,8 +163,6 @@ const CONFIG = {
   CONTACT_EMAIL: '567844@mail.muni.cz',
 };
 
-/* Texty — celé v češtine. Mena (EUR/CZK) je nezávislý prepínač vpravo hore,
-   používa sa v úlohe na diskontovanie aj pri finančných otázkach. */
 const T = {
   introTitle: 'Výzkum hraní videoher',
   introBody:
@@ -285,9 +280,6 @@ const T = {
     '<a href="mailto:' + CONFIG.CONTACT_EMAIL + '">' + CONFIG.CONTACT_EMAIL + '</a>.',
 };
 
-/* ============================================================
-   6-TRIAL ADJUSTING DELAY TASK — Koffarnus, Rzeszutek & Kaplan (2021), Table 3.
-   ============================================================ */
 const LABELS = {1:'5 sekund',2:'5 sekund',3:'7 sekund',4:'10 sekund',5:'15 sekund',6:'20 sekund',7:'25 sekund',
   8:'30 sekund',9:'45 sekund',10:'1 minutu',11:'1,5 minuty',12:'2 minuty',13:'3 minuty',14:'4 minuty',
   15:'6 minut',16:'9 minut',17:'12 minut',18:'17 minut',19:'23 minut',20:'30 minut',21:'45 minut',
@@ -317,10 +309,6 @@ const ODD_K = {
   61:{imm:0.0000702706,del:0.0000500696}, 63:{imm:0.0000421208,del:null},
 };
 
-/* ============================================================
-   RLBI — Risky Loot Box Index (5 položiek, škála 1-5, bez obrátených
-   položiek, všetky rovnakým smerom, jednoduchý súčet).
-   ============================================================ */
 const RLBI_ITEMS = [
   {key:'rlbi_1', text:'Vzrušení, které zažívám při otevírání lootboxů, mě přimělo si jich koupit více.'},
   {key:'rlbi_2', text:'Abych získal/a lootboxy, často hraji déle, než jsem chtěl/a.'},
@@ -333,15 +321,6 @@ const RLBI_SCALE = [
   {v:4,label:'Souhlasím'},{v:5,label:'Rozhodně souhlasím'},
 ];
 
-/* ============================================================
-   AEQ — Addiction-Engagement Questionnaire (Charlton & Danforth;
-   česká adaptácia Blinka a kol.)
-
-   Surové dáta (aeq_1..aeq_23) sa ukladajú presne tak, ako ich respondent
-   zvolil na 4-bodovej škále nižšie, žiadne prepočítavanie na subskóre
-   sa automaticky nerobí. Pole 'coding' pri každej položke je len
-   informatívna poznámka (priame/obrátené), v kóde sa nepoužíva.
-   ============================================================ */
 const AEQ_ITEMS_1 = [
   {key:'aeq_1',  coding:'reversed', text:'Někdy zanedbávám důležité věci kvůli hraní her.'},
   {key:'aeq_2',  coding:'reversed', text:'Můj společenský život občas trpí kvůli hraní her.'},
@@ -373,9 +352,6 @@ const AEQ_SCALE = [
   {v:1,label:'Rozhodně nesouhlasím'},{v:2,label:'Nesouhlasím'},{v:3,label:'Souhlasím'},{v:4,label:'Rozhodně souhlasím'},
 ];
 
-/* ============================================================
-   DEMOGRAFIA — vzdelanie, zamestnanie
-   ============================================================ */
 const EDUCATION_OPTIONS = [
   {value:'zakladni', label:'Základní'},
   {value:'stredni_bez_maturity', label:'Střední bez maturity (vyučen/a)'},
@@ -393,12 +369,6 @@ const EMPLOYMENT_OPTIONS = [
   {value:'jine', label:'Jiné'},
 ];
 
-/* ============================================================
-   ŽÁNROVÁ KATEGORIZACE HER — André, Bore, Toresson, Andersson &
-   Claesdotter-Knutsson (2024), Upsala Journal of Medical Sciences.
-   Pět kategorií vytvořených skupinou psychologů + game developera
-   pro výzkum gaming disorder, plus vlastní 6. "jiné/nevím" kategorie.
-   ============================================================ */
 const GAME_GENRE_OPTIONS = [
   {value:'competitive', label:'Kompetitivní (soutěživé) hry',
    sub:'Hry, ve kterých je hlavní náplní soupeření s ostatními hráči v zápasech a záleží na výsledku, skóre nebo pořadí.',
@@ -419,7 +389,6 @@ const GAME_GENRE_OPTIONS = [
    sub:'Hra, která podle vás nespadá do žádné z výše uvedených kategorií.'},
 ];
 
-/* Finanční model hry — samostatná kategorizace ze stejného zdroje (André a kol., 2024). */
 const GAME_MONETIZATION_OPTIONS = [
   {value:'f2p', label:'Hra je zdarma (Free-to-Play)',
    sub:'Za stažení a hraní samotné hry se neplatí. Hra ale může nabízet placené herní předměty, herní měnu, postavy nebo kosmetické doplňky.',
@@ -432,8 +401,6 @@ const GAME_MONETIZATION_OPTIONS = [
    examples:'The Witcher 3, Elden Ring, Baldur’s Gate 3.'},
 ];
 
-/* Charakteristika lootboxu v dané hře — Nielsen & Grabarczyk (2019), osy "Eligibility"
-   (vstup) a "Reward" (výstup) + samostatná os advantage vs. kosmetika. */
 const LOOTBOX_INPUT_OPTIONS = [
   {value:'yes', label:'Ano',
    sub:'Lootbox lze ve hře zakoupit za peníze, nebo je k jeho otevření zapotřebí placený klíč.'},
@@ -453,7 +420,6 @@ const LOOTBOX_TYPE_OPTIONS = [
   {value:'dontknow', label:'Nevím'},
 ];
 
-/* Vztahový status — kategorie převzaté ze Stašek a kol. (2024, Czech Gamers). */
 const RELATIONSHIP_STATUS_OPTIONS = [
   {value:'together_living', label:'Ve vztahu a bydlíme spolu'},
   {value:'together_apart', label:'Ve vztahu a nebydlíme spolu'},
@@ -463,8 +429,6 @@ const RELATIONSHIP_STATUS_OPTIONS = [
   {value:'skip', label:'Nechci uvést'},
 ];
 
-/* Zdroj návštevnosti (napr. ?src=discord alebo ?src=reddit v odkaze,
-   ktorý sa bude postovať) — číta sa raz pri načítaní stránky. */
 function getTrafficSource() {
   try {
     const src = new URLSearchParams(window.location.search).get('src');
@@ -474,18 +438,12 @@ function getTrafficSource() {
   }
 }
 
-/* ============================================================
-   STAV APLIKÁCIE
-   ============================================================ */
 const state = {
-  currency: 'czk',        // 'czk' | 'eur' — nezávisle od jazyka (jazyk je len čeština)
+  currency: 'czk',
   screen: 'intro',
-  // diskontovacia úloha:
   trial: 0, index: 32, step: 16, choices: [], trialLog: [], trialStartTs: null,
   attentionType: null,
-  // ostatné odpovede (plochý objekt, kľúč = názov položky):
   answers: {},
-  // pomocné časové značky pre page-level RT (speeder check):
   pageStartTs: {},
   participantId: 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
   studyStartIso: new Date().toISOString(),
@@ -503,13 +461,6 @@ function formatAmount(eur) {
 }
 function currencySuffix() { return state.currency === 'czk' ? 'Kč' : '€'; }
 
-/* ============================================================
-   CELKOVÝ PROGRESS (footer dole na obrazovke) — počíta sa cez
-   celý dotazník, 'trial' (DDT úloha) sa počíta ako 6 samostatných
-   krokov podľa state.trial. Obrazovky mimo tohto zoznamu (intro,
-   instructions, ineligible_*, thanks) progress nezobrazujú.
-   'country_other' sa počíta ako alias 'country'.
-   ============================================================ */
 const PROGRESS_FLOW = [
   'age', 'played30', 'hours7d',
   'game_genre', 'game_name', 'game_duration', 'game_monetization',
@@ -538,8 +489,6 @@ function getProgress() {
   return { step: done + 1, total, percent: Math.round(((done + 1) / total) * 100) };
 }
 
-/* Progress bar dole na obrazovke — čisto informatívny, bez tlačidla späť
-   (to je teraz samostatne hore v karte, pozri renderBackLink/wireBackLink nižšie). */
 function renderProgressFooter() {
   const p = getProgress();
   if (!p) return '';
@@ -549,10 +498,6 @@ function renderProgressFooter() {
   '</div>';
 }
 
-/* Minimalistický textový odkaz "← Zpět" úplne hore vľavo v rámci karty (nie pri progress bare).
-   renderBackLink vracia HTML, ktorý sa vkladá ako PRVÝ prvok v app.innerHTML (pred <h1>).
-   wireBackLink pripája click handler; ak sa zadá customHandler, použije sa namiesto
-   jednoduchého prechodu na backScreen (využíva to DDT úloha so špecifickou logikou). */
 function renderBackLink(backScreen) {
   return backScreen ? '<button class="back-link-top" id="backLinkBtn">&larr; ' + T.backBtn + '</button>' : '';
 }
@@ -562,9 +507,6 @@ function wireBackLink(backScreen, customHandler) {
   btn.addEventListener('click', customHandler || (() => { state.screen = backScreen; render(); }));
 }
 
-/* ============================================================
-   VŠEOBECNÉ RENDER POMÔCKY
-   ============================================================ */
 function renderCurrencyToggle() {
   const el = document.getElementById('langToggle');
   const showOnScreens = ['trial', 'lb_spend_this_game', 'lbspend', 'income'];
@@ -712,9 +654,6 @@ function renderLikertScreen(app, opts) {
   });
 }
 
-/* ============================================================
-   HLAVNÝ RENDER DISPATCHER
-   ============================================================ */
 function render() {
   renderCurrencyToggle();
   const app = document.getElementById('app');
@@ -756,7 +695,6 @@ function render() {
   window.scrollTo(0, 0);
 }
 
-/* ---------- intro / eligibilita ---------- */
 function renderIntro(app) {
   app.innerHTML =
     '<div class="logo-row"><img src="muni-logo.png" alt="Masarykova univerzita" ' +
@@ -826,7 +764,6 @@ function renderHours7dScreen(app) {
   });
 }
 
-/* ---------- hra: žáner, kontrolný názov, dĺžka hrania, monetizácia ---------- */
 function renderGameGenreScreen(app) {
   renderSingleChoiceScreen(app, {
     title: T.gameGenreTitle,
@@ -844,9 +781,6 @@ function renderGameNameScreen(app) {
   });
 }
 
-/* Dĺžka hrania KONKRÉTNEJ hry — posunuté sem, hneď vedľa identifikácie hry (žáner+názov),
-   nie k útrate ako predtým. Zatiaľ ponechané, definitívne rozhodnutie, či túto otázku
-   necháme, ešte nepadlo. */
 function renderGameDurationScreen(app) {
   renderNumericScreen(app, {
     title: T.gameDurationTitle, suffix: T.gameDurationSuffix, min: 0, max: 240, backScreen: 'game_name',
@@ -863,11 +797,6 @@ function renderGameMonetizationScreen(app) {
   });
 }
 
-/* ---------- lootbox v TEJTO KONKRÉTNEJ hre: otevřel/a za 12 měsíců, vstup, výstup, typ odměny, útrata ----------
-   Mechanické otázky (vstup/výstup/typ) sa pýtajú VŠETKÝCH bez ohľadu na to, či respondent lootbox
-   v tejto hre osobne otvoril (majú vlastné "Nevím" na zachytenie neistoty). Otázka "otevřel/a jste"
-   je TESNE PRED otázkou na vstup (za peniaze) — jediný účel je rozhodnúť, či sa má útrata na konci
-   tohto bloku pýtať, alebo rovno nastaviť 0. */
 function renderLootbox12moScreen(app) {
   renderSingleChoiceScreen(app, {
     title: T.lootbox12moTitle, note: T.lootbox12moNote,
@@ -908,8 +837,6 @@ function renderLootboxTypeScreen(app) {
   });
 }
 
-/* Útrata za lootboxy v TEJTO KONKRÉTNEJ hre — samostatná od celkovej útraty (lbspend) na
-   konci dotazníka. Gatuje ju lootbox_opened_12mo (opýtané na začiatku tohto bloku). */
 function renderLbSpendThisGameScreen(app) {
   if (state.answers.lootbox_opened_12mo === 'no') {
     state.answers.lb_spend_this_game_amount = 0;
@@ -930,7 +857,6 @@ function renderLbSpendThisGameScreen(app) {
   });
 }
 
-/* ---------- diskontovacia úloha (6 pokusov) ---------- */
 function renderInstructions(app) {
   app.innerHTML =
     renderBackLink('lb_spend_this_game') +
@@ -985,8 +911,6 @@ function renderTrial(app) {
   document.querySelectorAll('.choice-btn').forEach(b => {
     b.addEventListener('click', () => handleChoice(b.dataset.choice, content));
   });
-  /* DDT je adaptivní úloha — ZÁMĚRNĚ bez tlačítka zpět na žádném z 6 kroků,
-     nelze se vrátit ani do instrukcí, ani mezi jednotlivými otázkami. */
   beginTrialTimer();
 }
 
@@ -1049,7 +973,6 @@ function finishDiscountingTask({ attentionTriggered, attentionPassed, k }) {
   render();
 }
 
-/* ---------- RLBI / AEQ ---------- */
 function renderRlbiScreen(app) {
   renderLikertScreen(app, {
     title: T.rlbiTitle, note: T.rlbiNote + ' (celkem ' + RLBI_ITEMS.length + ' tvrzení)',
@@ -1069,7 +992,7 @@ function renderAeq1Screen(app) {
     title: T.aeq1Title, note: T.aeq1Note + ' (celkem ' + AEQ_ITEMS_1.length + ' tvrzení)',
     items: AEQ_ITEMS_1, scale: AEQ_SCALE, pageKey: 'aeq1', prevScreen: 'rlbi',
     onSubmit: (answers, durationMs) => {
-      Object.assign(state.answers, answers); // surové položky, žiadne subskóre sa neprepočítava
+      Object.assign(state.answers, answers);
       state.answers.aeq1_duration_ms = durationMs;
       state.screen = 'aeq2';
       render();
@@ -1090,9 +1013,6 @@ function renderAeq2Screen(app) {
   });
 }
 
-/* ---------- finančné otázky ---------- */
-/* VŠEOBECNÁ obdoba lootbox12mo — naprieč všetkými hrami, nie len tou uvedenou vyššie.
-   Gatuje celkovú útratu (lbspend) rovnakým spôsobom, akým lootbox12mo gatuje lb_spend_this_game. */
 function renderLootboxEverGeneralScreen(app) {
   renderSingleChoiceScreen(app, {
     title: T.lootboxEverGeneralTitle, note: T.lootboxEverGeneralNote,
@@ -1137,8 +1057,6 @@ function renderIncomeScreen(app) {
   });
 }
 
-/* ---------- demografia (zvyšok) — od herného kontextu k stále všeobecnejším otázkam,
-   krajina pôvodu je zámerne posledná otázka pred odoslaním. ---------- */
 function renderPlatformScreen(app) {
   renderSingleChoiceScreen(app, {
     title: T.platformTitle,
@@ -1213,9 +1131,6 @@ function renderCountryOtherScreen(app) {
   });
 }
 
-/* ============================================================
-   ODOSIELANIE DÁT
-   ============================================================ */
 function finishSurvey() {
   const payload = Object.assign(
     { record_type:'survey', participant_id: state.participantId, study_id: CONFIG.STUDY_ID,
@@ -1310,7 +1225,6 @@ async function postToSupabase(tableName, row) {
 }
 
 async function submitRaffleEmail(email) {
-  // ZÁMERNE bez participant_id — e-mail sa neprepája s odpoveďami.
   const status = await postToScript({ record_type:'raffle', study_id: CONFIG.STUDY_ID, email,
     traffic_source: state.trafficSource, timestamp: new Date().toISOString() });
   if (status === 'sent') {
