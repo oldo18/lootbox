@@ -31,6 +31,12 @@ create table if not exists public.raffle_entries (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.rate_limit_log (
+  id uuid primary key default gen_random_uuid(),
+  ip text not null,
+  created_at timestamptz not null default now()
+);
+
 -- Ak tabuľky už existujú z predošlého nasadenia (create table if not exists
 -- ich nezmení), pridaj stĺpec dodatočne:
 alter table public.screened_out add column if not exists traffic_source text;
@@ -42,11 +48,13 @@ create index if not exists survey_responses_study_id_idx on public.survey_respon
 create index if not exists survey_responses_traffic_source_idx on public.survey_responses (traffic_source);
 create index if not exists surveyed_out_study_id_idx on public.screened_out (study_id);
 create index if not exists raffle_entries_study_id_idx on public.raffle_entries (study_id);
+create index if not exists rate_limit_log_ip_created_idx on public.rate_limit_log (ip, created_at);
 
 -- 3) RLS
 alter table public.survey_responses enable row level security;
 alter table public.screened_out enable row level security;
 alter table public.raffle_entries enable row level security;
+alter table public.rate_limit_log enable row level security;
 
 create policy if not exists "Allow anonymous inserts to survey responses"
 on public.survey_responses

@@ -167,8 +167,6 @@ const CONFIG = {
   EUR_TO_CZK: 24.2,
   CZK_RATE_NOTE: 'kurz k 16. 7. 2026',
   GOOGLE_SCRIPT_URL: '',
-  SUPABASE_URL: 'https://ndewvvwfziqrhobubzln.supabase.co',
-  SUPABASE_ANON_KEY: 'sb_publishable_tVFK-FwPMpRxa_DhBBcd_A_9ZnKlU8O',
   USE_SUPABASE: true,
   MIN_PLAUSIBLE_RT_MS: 300,
   MIN_AGE: 18,
@@ -1188,33 +1186,17 @@ function submitScreenedOut(reason, age) {
 
 async function postToScript(payload) {
   try {
-    if (isSupabaseConfigured()) {
-      if (payload.record_type === 'survey') {
-        const row = {
-          participant_id: payload.participant_id,
-          study_id: payload.study_id,
-          currency: payload.currency || null,
-          amount_eur: payload.amount_eur || null,
-          submitted_at: payload.finished_at || payload.submitted_at || new Date().toISOString(),
-          payload: payload,
-        };
-        return await postToSupabase('survey_responses', row);
+    if (CONFIG.USE_SUPABASE) {
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || ('submit failed: ' + response.status));
       }
-      if (payload.record_type === 'screened_out') {
-        return await postToSupabase('screened_out', {
-          study_id: payload.study_id,
-          reason: payload.reason,
-          age: payload.age != null ? Number(payload.age) : null,
-          traffic_source: payload.traffic_source || null,
-        });
-      }
-      if (payload.record_type === 'raffle') {
-        return await postToSupabase('raffle_entries', {
-          study_id: payload.study_id,
-          email: payload.email,
-          traffic_source: payload.traffic_source || null,
-        });
-      }
+      return 'sent';
     }
 
     if (!CONFIG.GOOGLE_SCRIPT_URL) return 'not_configured';
@@ -1233,30 +1215,6 @@ async function submitData(payload) {
   const status = await postToScript(payload);
   state.sendStatus = status === 'not_configured' ? 'not_configured' : status;
   renderThanksStatus();
-}
-
-function isSupabaseConfigured() {
-  return !!CONFIG.SUPABASE_URL && !!CONFIG.SUPABASE_ANON_KEY && CONFIG.USE_SUPABASE;
-}
-
-async function postToSupabase(tableName, row) {
-  if (!isSupabaseConfigured()) return null;
-  const baseUrl = CONFIG.SUPABASE_URL.replace(/\/$/, '');
-  const response = await fetch(baseUrl + '/rest/v1/' + tableName, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: CONFIG.SUPABASE_ANON_KEY,
-      Authorization: 'Bearer ' + CONFIG.SUPABASE_ANON_KEY,
-      Prefer: 'return=minimal',
-    },
-    body: JSON.stringify(row),
-  });
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || ('Supabase insert failed: ' + response.status));
-  }
-  return 'sent';
 }
 
 async function submitRaffleEmail(email) {
